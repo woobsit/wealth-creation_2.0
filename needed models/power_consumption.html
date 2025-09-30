@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Consumption Management</title>
+    <link rel="stylesheet" href="assets/css/power_consumption.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Power Consumption Management</h1>
+        
+        <!-- Search Form -->
+        <div class="search-form">
+            <input type="text" id="shopNoSearch" placeholder="Enter Shop No">
+            <button onclick="searchCustomer()">Search</button>
+        </div>
+
+        <!-- Customer Details -->
+        <div id="customerDetails" class="hidden">
+            <h2>Customer Details</h2>
+            <div class="details-grid">
+                <div class="detail-item">
+                    <label>Shop No:</label>
+                    <span id="shopNo"></span>
+                </div>
+                <div class="detail-item">
+                    <label>Customer Name:</label>
+                    <span id="customerName"></span>
+                </div>
+                <div class="detail-item">
+                    <label>Meter No:</label>
+                    <span id="meterNo"></span>
+                </div>
+                <div class="detail-item">
+                    <label>Current Month:</label>
+                    <span id="currentMonth"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reading Form -->
+        <form id="readingForm" class="hidden">
+            <h2>Enter New Reading</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="currentMonth">Billing Month:</label>
+                    <input type="text" id="currentMonth" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="previousReading">Previous Reading:</label>
+                    <input type="number" id="previousReading" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="presentReading">Present Reading:</label>
+                    <input type="number" id="presentReading" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="dateOfReading">Date of Reading:</label>
+                    <input type="date" id="dateOfReading" required>
+                </div>
+            </div>
+            <button type="button" onclick="calculateBill()">Calculate Bill</button>
+        </form>
+
+        <!-- Bill Summary -->
+        <div id="billSummary" class="hidden">
+            <h2>Bill Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <label>Consumption:</label>
+                    <span id="consumption">0</span> KW
+                </div>
+                <div class="summary-item">
+                    <label>Cost:</label>
+                    ₦<span id="cost">0.00</span>
+                </div>
+                <div class="summary-item">
+                    <label>VAT (7.5%):</label>
+                    ₦<span id="vatCost">0.00</span>
+                </div>
+                <div class="summary-item">
+                    <label>Previous Outstanding:</label>
+                    ₦<span id="previousOutstanding">0.00</span>
+                </div>
+                <div class="summary-item total">
+                    <label>Total Payable:</label>
+                    ₦<span id="totalPayable">0.00</span>
+                </div>
+            </div>
+            <button onclick="saveBill()">Save Bill</button>
+        </div>
+
+        <!-- Consumption History -->
+        <div id="consumptionHistory" class="hidden">
+            <h2>Consumption History</h2>
+            <div class="history-cards" id="historyCards"></div>
+        </div>
+    </div>
+
+    <script src="assets/js/power_consumption.js"></script>
+</body>
+</html>

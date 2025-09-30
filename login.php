@@ -192,9 +192,8 @@ $user_agent = htmlspecialchars(strip_tags($user_agent));
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Login | Wealth Creation ERP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="css/tailwindcss.min.css">
   <script>
     tailwind.config = {
       theme: {
@@ -291,7 +290,7 @@ $user_agent = htmlspecialchars(strip_tags($user_agent));
       transform: translateY(-2px);
       box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
     }
-    
+
     .floating-shapes {
       position: absolute;
       width: 100%;
@@ -324,31 +323,10 @@ $user_agent = htmlspecialchars(strip_tags($user_agent));
       right: 10%;
       animation-delay: -4s;
     }
-    
-    .brand-logo {
-      background: linear-gradient(135deg, #0ea5e9, #d946ef);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .error-shake {
-      animation: shake 0.5s ease-in-out;
-    }
-    
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
   </style>
 </head>
-<body class="font-inter bg-gray-50 min-h-screen overflow-hidden">
-  <!-- Background Pattern -->
-  <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50"></div>
-  <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%230ea5e9" fill-opacity="0.03"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
-
-  <div class="relative max-h-screen flex">
+<body class="font-inter bg-gray-50 min-h-screen">
+  <div class="max-h-screen flex">
     <!-- Left Side - Login Form -->
     <div class="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24 relative z-10">
       <div class="mx-auto w-full max-w-md lg:w-96 animate-slide-in">
@@ -530,7 +508,7 @@ $user_agent = htmlspecialchars(strip_tags($user_agent));
       </div>
     </div>
 
-    <!-- Right Side - Visual -->
+    <!-- Right Side - Image -->
     <div class="hidden lg:block relative w-0 flex-1">
       <div class="absolute inset-0 login-bg">
         <div class="floating-shapes"></div>
@@ -613,67 +591,38 @@ $user_agent = htmlspecialchars(strip_tags($user_agent));
       document.getElementById('loading-overlay').classList.remove('hidden');
     });
 
-    // Enhanced form interactions
+    // Add subtle animations to form elements
     document.addEventListener('DOMContentLoaded', function() {
       const inputs = document.querySelectorAll('input');
-      
       inputs.forEach(input => {
-        // Focus effects
         input.addEventListener('focus', function() {
           this.parentElement.classList.add('transform', 'scale-[1.02]');
-          this.parentElement.style.transition = 'transform 0.2s ease';
         });
-        
         input.addEventListener('blur', function() {
           this.parentElement.classList.remove('transform', 'scale-[1.02]');
         });
-
-        // Real-time validation feedback
-        input.addEventListener('input', function() {
-          if (this.type === 'email' && this.value) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (emailRegex.test(this.value)) {
-              this.classList.remove('border-red-300');
-              this.classList.add('border-green-300');
-            } else {
-              this.classList.remove('border-green-300');
-              this.classList.add('border-red-300');
-            }
-          }
-        });
       });
+    });
 
-      // Auto-hide alerts after 6 seconds
+    // Auto-hide alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
       const alerts = document.querySelectorAll('.animate-fade-in');
       alerts.forEach(alert => {
         setTimeout(() => {
           alert.style.opacity = '0';
           alert.style.transform = 'translateY(-10px)';
           setTimeout(() => alert.remove(), 300);
-        }, 6000);
-      });
-
-      // Add subtle parallax effect to floating shapes
-      document.addEventListener('mousemove', function(e) {
-        const shapes = document.querySelector('.floating-shapes');
-        if (shapes) {
-          const x = e.clientX / window.innerWidth;
-          const y = e.clientY / window.innerHeight;
-          shapes.style.transform = `translate(${x * 10}px, ${y * 10}px)`;
-        }
+        }, 5000);
       });
     });
 
-    // Keyboard accessibility
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-        const form = e.target.closest('form');
-        if (form) {
-          const submitBtn = form.querySelector('button[type="submit"]');
-          if (submitBtn) {
-            submitBtn.click();
-          }
-        }
+    // Add subtle parallax effect to floating shapes
+    document.addEventListener('mousemove', function(e) {
+      const shapes = document.querySelector('.floating-shapes');
+      if (shapes) {
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
+        shapes.style.transform = `translate(${x * 10}px, ${y * 10}px)`;
       }
     });
   </script>

@@ -1,190 +1,65 @@
 <?php
-	ob_start();
-	ini_set('session.cookie_lifetime', 60 * 60 * 24);
-	ini_set('session.gc-maxlifetime', 60 * 60 * 24);
-	session_set_cookie_params(86400);              
-	session_start();
-	require_once 'include/dbconfig.php';
+require 'config/config.php';
+require 'models/User.php';
+require 'helpers/session_helper.php';
 
-//Generate a random string.
-$token = openssl_random_pseudo_bytes(20);
- 
-//Convert the binary data into hexadecimal representation.
-$token = bin2hex($token);
- 
-
- // it will never let you open index(login) page if session is set
- if ( isset($_SESSION['admin'])!="" ) {
-  header("Location: modules/staff/index.php");
-  exit;
- }
-
- if ( isset($_SESSION['staff'])!="" ) {
-  header("Location: modules/staff/index.php");
-  exit;	
- }
- 
- $error = false;
- 
- if( isset($_POST['btn_login']) ) { 
-  
-  // prevent sql injections/ clear user invalid inputs
-  $email = trim($_POST['email']);
-  $email = strip_tags($email);
-  $email = htmlspecialchars($email);
-  
-  $pass = trim($_POST['pass']);
-  $pass = strip_tags($pass);
-  $pass = htmlspecialchars($pass);
-  // prevent sql injections / clear user invalid inputs
-  
-  if(empty($email)){
-   $error = true;
-   $emailError = "Please enter your email address.";
-  } else if ( !filter_var($email,FILTER_VALIDATE_EMAIL) ) {
-   $error = true;
-   $emailError = "Please enter valid email address.";
-  }
-  
-  if(empty($pass)){
-   $error = true;
-   $passError = "Please enter your password.";
-  }
-  
-  
-//Check the IP Address of the user
-	function getUserIP() {
-	$ipaddress = '';
-	if (isset($_SERVER['HTTP_CLIENT_IP']))
-		$ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-	else if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-		$ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-	else if(isset($_SERVER['HTTP_X_FORWARDED']))
-		$ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-	else if(isset($_SERVER['HTTP_X_CLUSTER_CLIENT_IP']))
-		$ipaddress = $_SERVER['HTTP_X_CLUSTER_CLIENT_IP'];
-	else if(isset($_SERVER['HTTP_FORWARDED_FOR']))
-		$ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-	else if(isset($_SERVER['HTTP_FORWARDED']))
-		$ipaddress = $_SERVER['HTTP_FORWARDED'];
-	else if(isset($_SERVER['REMOTE_ADDR']))
-		$ipaddress = $_SERVER['REMOTE_ADDR'];
-	else
-		$ipaddress = 'UNKNOWN';
-	return $ipaddress;
-	}
-	$ip_address = getUserIP();
-
-//Capture the browser name
-function get_browser_name($user_agent)
-{
-    if (strpos($user_agent, 'Opera') || strpos($user_agent, 'OPR/')) return 'Opera';
-    elseif (strpos($user_agent, 'Edge')) return 'Microsoft Edge';
-    elseif (strpos($user_agent, 'Chrome')) return 'Google Chrome';
-    elseif (strpos($user_agent, 'Safari')) return 'Safari';
-    elseif (strpos($user_agent, 'Firefox')) return 'Mozilla Firefox';
-    elseif (strpos($user_agent, 'MSIE') || strpos($user_agent, 'Trident/7')) return 'Internet Explorer';
-    return 'Other';
+// Check if user is already logged in
+if(isLoggedIn()) {
+    redirect('dashboard.php');
 }
-$browser = get_browser_name($_SERVER['HTTP_USER_AGENT']);
 
-//Capture the User Agent
-$user_agent = $_SERVER['HTTP_USER_AGENT'];
-$user_agent = htmlspecialchars(strip_tags($user_agent));
+// Initialize variables
+$email = '';
+$password = '';
+$email_err = '';
+$password_err = '';
+$login_err = '';
 
-  // if there's no error, continue to login
-  if (!$error) {
-   
-   $password = hash('sha256', $pass); // password hashing using SHA256
-  
-   $sqlquery = "SELECT id, user_level, full_name, password FROM users WHERE email='$email' AND status='active'";
-   $result = mysqli_query($dbcon,$sqlquery);
-   $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
-   $count = mysqli_num_rows($result); // if uname/pass correct it returns must be 1 row
-   
-   
-	if( $count == 1 && $user['password']==$password && $user['user_level']== 1 ) {
-		//$token = getToken(10);
-		$_SESSION['token'] = $token;
-		$_SESSION['admin'] = $user['id'];
-		
-		$staff_id = $user['id'];
-		$staff_name = $user['full_name'];
-		$action = "Login";
-		date_default_timezone_set('Africa/Lagos'); // your reference timezone here
-		$now = date('Y-m-d H:i:s');
-		
-		$sessionID = session_id();
-		
-		// Update user token
-		$query = "SELECT COUNT(*) AS tokencount FROM users_logs WHERE user_id='$staff_id'";
-		$result = mysqli_query($dbcon, $query);
-		$row_token = mysqli_fetch_array($result, MYSQLI_ASSOC);
-		
-		if($row_token['tokencount'] > 0){
-			$log_query = "UPDATE users_logs SET token='$token' WHERE user_id='$staff_id'";
-			$result = mysqli_query($dbcon, $log_query);
-		} else {
-			$log_query = "INSERT INTO users_logs (id, user_id, staff_name, email, ip_address, browser, user_agent, token, timemodified) VALUES ('','$staff_id','$staff_name','$email','$ip_address','$browser','$user_agent','$token','$now')";
-			$log_result = mysqli_query($dbcon,$log_query);
-		}
-		
-		if ($log_query)
-		{
-			?>
-			<script type="text/javascript">
-			alert('<?php echo 'Welcome back, '.$staff_name.'!'; ?>');
-			window.location.href='modules/staff/index.php';
-			</script>
-			<?php
-		}
-	}
-	
-	
-	elseif($count==1 && $user['password']==$password && $user['user_level']==0) {
-		//$token = getToken(10);
-		$_SESSION['token'] = $token;
-		$_SESSION['staff'] = $user['id'];
-		
-		$staff_id = $user['id'];
-		$staff_name = $user['full_name'];
-		$action = "Login";
-		date_default_timezone_set('Africa/Lagos'); // your reference timezone here
-		$now = date('Y-m-d H:i:s');
-		
-		$sessionID = session_id();
-
-
-		// Update user token
-		$query = "SELECT COUNT(*) AS tokencount FROM users_logs WHERE user_id='$staff_id'";
-		$result = mysqli_query($dbcon, $query);
-		$row_token = mysqli_fetch_array($result, MYSQLI_ASSOC);
-		
-		if($row_token['tokencount'] > 0){
-			$log_query = "UPDATE users_logs SET token='$token' WHERE user_id='$staff_id'";
-			$result = mysqli_query($dbcon, $log_query);
-		} else {
-			$log_query = "INSERT INTO users_logs (id, user_id, staff_name, email, ip_address, browser, user_agent, token, timemodified) VALUES ('','$staff_id','$staff_name','$email','$ip_address','$browser','$user_agent','$token','$now')";
-			$log_result = mysqli_query($dbcon,$log_query);
-		}
-		
-		if ($log_query)
-		{
-			?>
-			<script type="text/javascript">
-			alert('<?php echo 'Welcome back, '.$staff_name.'!'; ?>');
-			window.location.href='modules/staff/index.php';
-			</script>
-			<?php
-		}
-	}
-	else{
-		$errMSG = "Incorrect Credentials, Try again...";
-	}   
-  }
-  
- }
+// Process form data when form is submitted
+if($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Check if email is empty
+    if(empty(trim($_POST['email']) || !filter_var(trim($_POST['email']),FILTER_VALIDATE_EMAIL))) {
+        $email_err = 'Please enter valid email.';
+    } else {
+        $email = trim($_POST['email']);
+    }
+    
+    // Check if password is empty
+    if(empty(trim($_POST['password']))) {
+        $password_err = 'Please enter your password.';
+    } else {
+        $password = trim($_POST['password']);
+    }
+    
+    // Validate credentials
+    if(empty($email_err) && empty($password_err)) {
+        
+        // Create user object
+        $user = new User($databaseObj);
+        // Attempt to login
+        $loggedInUser = $user->login($email, $password);
+        
+        if($loggedInUser) {
+           
+            // Store data in session variables
+            $_SESSION['user_id'] = $loggedInUser['id'];
+            $_SESSION['user_level'] = $loggedInUser['user_level'];
+            $_SESSION['first_name'] = $loggedInUser['first_name'];
+            $_SESSION['last_name'] = $loggedInUser['last_name'];
+            $_SESSION['status'] = $loggedInUser['status'];
+            $_SESSION['level'] = $loggedInUser['level'];
+            
+            
+            // Redirect user to welcome page
+            redirect('dashboard.php');
+        } else {
+            // Display an error message if password is not valid
+            $login_err = 'Invalid email or password.';
+        }
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -382,52 +257,6 @@ $user_agent = htmlspecialchars(strip_tags($user_agent));
           </p>
         </div>
 
-        <!-- Error Messages -->
-        <?php if (isset($ipError)): ?>
-        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl animate-fade-in">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-            <div class="ml-3">
-              <p class="text-emerald-800 font-medium"><?php echo @$ipError; ?></p>
-            </div>
-          </div>
-        </div>
-        <?php endif; ?>
-
-        <?php if (isset($logError)): ?>
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl animate-fade-in error-shake">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-            <div class="ml-3">
-              <p class="text-red-800 font-medium"><?php echo @$logError; ?></p>
-            </div>
-          </div>
-        </div>
-        <?php endif; ?>
-
-        <?php if (isset($errMSG)): ?>
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl animate-fade-in error-shake">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-            <div class="ml-3">
-              <p class="text-red-800 font-medium"><?php echo @$errMSG; ?></p>
-            </div>
-          </div>
-        </div>
-        <?php endif; ?>
-
         <!-- Login Form -->
         <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" class="space-y-6">
           <div class="space-y-1">
@@ -446,16 +275,16 @@ $user_agent = htmlspecialchars(strip_tags($user_agent));
                 id="email" 
                 class="input-focus block w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 bg-white text-gray-900 placeholder-gray-500 text-base" 
                 placeholder="Enter your official email address"
-                value="<?php if (isset($_POST['btn_login'])) echo $email; ?>"
+                value="<?php if (isset($_POST['email'])) echo $email; ?>"
                 required
               >
             </div>
-            <?php if (isset($emailError)): ?>
+            <?php if (isset($email_err)): ?>
             <p class="mt-2 text-sm text-red-600 flex items-center">
               <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 000 2v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"></path>
               </svg>
-              <?php echo @$emailError; ?>
+              <?php echo $email_err; ?>
             </p>
             <?php endif; ?>
           </div>
@@ -479,12 +308,12 @@ $user_agent = htmlspecialchars(strip_tags($user_agent));
                 required
               >
             </div>
-            <?php if (isset($passError)): ?>
+            <?php if (isset($password_err)): ?>
             <p class="mt-2 text-sm text-red-600 flex items-center">
               <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 000 2v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"></path>
               </svg>
-              <?php echo @$passError; ?>
+              <?php echo @$password_err; ?>
             </p>
             <?php endif; ?>
           </div>

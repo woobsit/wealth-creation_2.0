@@ -1,17 +1,15 @@
 <?php
-require_once 'config.php';
-
 class Database {
-    private $host = DB_HOST;
-    private $user = DB_USER;
-    private $pass = DB_PASS;
-    private $dbname = DB_NAME;
+    private $host;
+    private $user;
+    private $pass;
+    private $dbname;
     
     private $conn;
     private $error;
     private $stmt;
     
-    public function __construct() {
+    public function __construct($host, $user, $pass, $dbname) {
         // Set DSN (Data Source Name)
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
         

@@ -1,4 +1,10 @@
 <?php
+require 'config/Database.php';
+session_start();
+// ini_set('session.cookie_lifetime', 60 * 60 * 24);
+// ini_set('session.gc-maxlifetime', 60 * 60 * 24);
+// session_set_cookie_params(86400);
+
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -23,4 +29,6 @@ ini_set('display_errors', 1);
 
 // Secret key for token generation
 define('SECRET_KEY', '');
+
+$databaseObj = new Database(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 ?>

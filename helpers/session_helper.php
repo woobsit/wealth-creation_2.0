@@ -1,6 +1,6 @@
 <?php
 function isLoggedIn() {
-    return (isset($_SESSION['user_id']));
+    return (isset($_SESSION['admin']) || isset($_SESSION['staff']));
 }
 
 // Redirect if not logged in
@@ -34,10 +34,16 @@ function flash($name = '', $message = '', $class = 'alert alert-success') {
 }
 
 function getLoggedInUserId() {
-    if (isset($_SESSION['user_id'])) {
-        return $_SESSION['user_id'];
-    } 
+    if (isset($_SESSION['admin'])) {
+        return $_SESSION['admin'];
+    } elseif (isset($_SESSION['staff'])) {
+        return $_SESSION['staff'];
+    } else {
+        return null;
+    }
 }
+
+$userId = getLoggedInUserId();
 
 // Check user role
 // function hasRole($role) {
@@ -59,7 +65,7 @@ function hasDepartment($dept) {
 
 // Redirect if not authorized for the role
 function requireRole($role) {
-    if (!isLoggedIn() || $_SESSION['level'] !== $role) {
+    if (!isLoggedIn() || $_SESSION['user_role'] !== $role) {
         redirect('unauthorized.php');
     }
 }
@@ -414,46 +420,4 @@ function truncate_text($text, $length = 50, $suffix = '...') {
     
     return substr($text, 0, $length) . $suffix;
 }
-
-function getUserIP() {
-    $ipaddress = '';
-    if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-        $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        // May contain multiple IPs (client, proxy1, proxy2) - take the first one
-        $ipaddress = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-    } elseif (isset($_SERVER['HTTP_X_CLUSTER_CLIENT_IP'])) {
-        $ipaddress = $_SERVER['HTTP_X_CLUSTER_CLIENT_IP'];
-    } elseif (isset($_SERVER['HTTP_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-    } elseif (isset($_SERVER['HTTP_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED'];
-    } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-        $ipaddress = $_SERVER['REMOTE_ADDR'];
-    } else {
-        $ipaddress = 'UNKNOWN';
-    }
-    
-    // Simple filter to ensure a single, clean IP (if comma-separated)
-    if (strpos($ipaddress, ',') !== false) {
-        $ipaddress = trim(explode(',', $ipaddress)[0]);
-    }
-    
-    return $ipaddress;
-}
-
-function get_browser_name($user_agent) {
-    if (strpos($user_agent, 'Opera') || strpos($user_agent, 'OPR/')) return 'Opera';
-    if (strpos($user_agent, 'Edge')) return 'Microsoft Edge';
-    // Check for Chrome before Safari, as Chrome contains 'Safari' in its UA string
-    if (strpos($user_agent, 'Chrome')) return 'Google Chrome'; 
-    if (strpos($user_agent, 'Safari')) return 'Safari';
-    if (strpos($user_agent, 'Firefox')) return 'Mozilla Firefox';
-    // Check for IE 11 (Trident/7) and older IE (MSIE)
-    if (strpos($user_agent, 'MSIE') || strpos($user_agent, 'Trident/7')) return 'Internet Explorer';
-    
-    return 'Other';
-}
-
+?>

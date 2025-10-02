@@ -25,13 +25,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     
     // Check if password is empty
-    if(empty(trim($_POST['password']))) {
+    if(empty(trim($_POST['pass']))) {
         $password_err = 'Please enter your password.';
     } else {
-        $password = trim($_POST['password']);
+        $password = trim($_POST['pass']);
     }
     
-    // Validate credentials
+    // // Validate credentials
     if(empty($email_err) && empty($password_err)) {
         
         // Create user object

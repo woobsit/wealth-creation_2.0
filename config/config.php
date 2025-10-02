@@ -1,9 +1,11 @@
 <?php
 require 'config/Database.php';
+session_set_cookie_params(86400);
 session_start();
+ini_set('session.gc-maxlifetime', 60 * 60 * 24);
 // ini_set('session.cookie_lifetime', 60 * 60 * 24);
-// ini_set('session.gc-maxlifetime', 60 * 60 * 24);
-// session_set_cookie_params(86400);
+// 
+// 
 
 // Database configuration
 define('DB_HOST', 'localhost');
@@ -13,8 +15,8 @@ define('DB_NAME', 'wealth_creation');
 
 // Application configuration
 define('APP_NAME', 'WEALTH CREATION ERP');
-define('APP_URL', 'localhost:8080/wealthcreation-lts/modules/staff/mod/wc-lts');
-define('APP_VERSION', '1.0.0');
+define('APP_URL', 'http://localhost/wealth-creation-2.0');
+define('APP_VERSION', '2.0.0');
 
 // Session configuration
 //define('SESSION_NAME', 'income_erp_session');

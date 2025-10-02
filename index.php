@@ -49,9 +49,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['status'] = $loggedInUser['status'];
             $_SESSION['level'] = $loggedInUser['level'];
             
-            
             // Redirect user to welcome page
-            redirect('dashboard.php');
+            redirect('access.php');
         } else {
             // Display an error message if password is not valid
             $login_err = 'Invalid email or password.';
@@ -259,6 +258,19 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <!-- Login Form -->
         <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" class="space-y-6">
+
+         <?php if (!empty($login_err)): ?>
+            <div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl animate-fade-in error-shake" role="alert">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 000 2v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <p class="font-medium text-base">
+                        <?php echo $login_err; ?>
+                    </p>
+                </div>
+            </div>
+            <?php endif; ?>
           <div class="space-y-1">
             <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
               Email Address

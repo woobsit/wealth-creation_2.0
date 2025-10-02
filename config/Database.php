@@ -11,6 +11,11 @@ class Database {
     
     public function __construct($host, $user, $pass, $dbname) {
         // Set DSN (Data Source Name)
+        $this->host = $host;
+        $this->user = $user;
+        $this->pass = $pass;
+        $this->dbname = $dbname;
+        
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
         
         // Set PDO options

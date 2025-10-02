@@ -9,7 +9,7 @@ class User {
     // Register a new user
     public function register($data) {
         // Prepare query
-        $this->db->query('INSERT INTO users (username, password, full_name, role, email, phone) VALUES (:username, :password, :full_name, :role, :email, :phone)');
+        $this->db->query('INSERT INTO _users (username, password, full_name, role, email, phone) VALUES (:username, :password, :full_name, :role, :email, :phone)');
         
         // Hash password
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -33,7 +33,7 @@ class User {
     // Login user
     public function login($email, $password) {
         // Prepare query
-        $this->db->query('SELECT * FROM users WHERE email = :email AND status = "active"');
+        $this->db->query('SELECT * FROM _users WHERE email = :email AND status = "active"');
         
         // Bind value
         $this->db->bind(':email', $email);
@@ -55,7 +55,7 @@ class User {
 
     public function loginwithrole($email, $password) {
         // Step 1: Check user by email and active status
-        $this->db->query('SELECT * FROM users WHERE email = :email AND status = "active"');
+        $this->db->query('SELECT * FROM _users WHERE email = :email AND status = "active"');
         $this->db->bind(':email', $email);
         
         $user = $this->db->single();
@@ -110,7 +110,7 @@ class User {
     // Find user by username
     public function findUserByUsername($username) {
         // Prepare query
-        $this->db->query('SELECT * FROM users WHERE username = :username');
+        $this->db->query('SELECT * FROM _users WHERE username = :username');
         
         // Bind value
         $this->db->bind(':username', $username);
@@ -129,7 +129,7 @@ class User {
     // Find user by email
     public function findUserByEmail($email) {
         // Prepare query
-        $this->db->query('SELECT * FROM users WHERE email = :email');
+        $this->db->query('SELECT * FROM _users WHERE email = :email');
         
         // Bind value
         $this->db->bind(':email', $email);
@@ -148,7 +148,7 @@ class User {
     // Get user by ID
     public function getUserById($id) {
         // Prepare query
-        $this->db->query('SELECT * FROM users WHERE id = :id');
+        $this->db->query('SELECT * FROM _users WHERE id = :id');
         
         // Bind value
         $this->db->bind(':id', $id);
@@ -160,7 +160,7 @@ class User {
     // Get all users
     public function getUsers() {
         // Prepare query
-        $this->db->query('SELECT * FROM users ORDER BY full_name ASC');
+        $this->db->query('SELECT * FROM _users ORDER BY full_name ASC');
         
         // Get result set
         return $this->db->resultSet();
@@ -169,7 +169,7 @@ class User {
     // Get users by role
     public function getUsersByRole($role) {
         // Prepare query
-        $this->db->query('SELECT * FROM users WHERE role = :role AND status = "active" ORDER BY full_name ASC');
+        $this->db->query('SELECT * FROM _users WHERE role = :role AND status = "active" ORDER BY full_name ASC');
         
         // Bind value
         $this->db->bind(':role', $role);
@@ -231,7 +231,7 @@ class User {
     // Update user
     public function updateUser($data) {
         // Prepare query
-        $this->db->query('UPDATE users SET full_name = :full_name, email = :email, phone = :phone, role = :role, status = :status WHERE id = :id');
+        $this->db->query('UPDATE _users SET full_name = :full_name, email = :email, phone = :phone, role = :role, status = :status WHERE id = :id');
         
         // Bind values
         $this->db->bind(':id', $data['id']);
@@ -255,7 +255,7 @@ class User {
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
         
         // Prepare query
-        $this->db->query('UPDATE users SET password = :password WHERE id = :id');
+        $this->db->query('UPDATE _users SET password = :password WHERE id = :id');
         
         // Bind values
         $this->db->bind(':id', $id);
@@ -267,6 +267,23 @@ class User {
         } else {
             return false;
         }
+    }
+
+     public function logout() {
+        // Unset all session variables
+        $_SESSION = array();
+
+        // Destroy the session cookie
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+
+        // Destroy the session
+        session_destroy();
     }
 
     // Require login and specific department access
@@ -282,5 +299,6 @@ class User {
     //         redirect('unauthorized.php');
     //     }
     // }
+
 }
 ?>

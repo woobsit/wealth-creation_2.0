@@ -1,12 +1,12 @@
 <?php
 function isLoggedIn() {
-    return (isset($_SESSION['admin']) || isset($_SESSION['staff']));
+    return (isset($_SESSION['user_id']));
 }
 
 // Redirect if not logged in
 function requireLogin() {
     if (!isLoggedIn()) { 
-        redirect('login.php');
+        redirect('index.php');
     }
 }
 
@@ -42,8 +42,6 @@ function getLoggedInUserId() {
         return null;
     }
 }
-
-$userId = getLoggedInUserId();
 
 // Check user role
 // function hasRole($role) {

@@ -1,5 +1,6 @@
 <?php
-require 'config/Database.php';
+// Fix the internal require using __DIR__
+require __DIR__ . '/Database.php'; 
 session_set_cookie_params(86400);
 session_start();
 ini_set('session.gc-maxlifetime', 60 * 60 * 24);
@@ -17,6 +18,8 @@ define('DB_NAME', 'wealth_creation');
 define('APP_NAME', 'WEALTH CREATION ERP');
 define('APP_URL', 'http://localhost/wealth-creation-2.0');
 define('APP_VERSION', '2.0.0');
+
+define('ROOT_PATH', dirname(__DIR__)); 
 
 // Session configuration
 //define('SESSION_NAME', 'income_erp_session');

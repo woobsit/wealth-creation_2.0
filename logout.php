@@ -1,7 +1,7 @@
 <?php
-require 'config/config.php';
-require 'models/User.php';
-require 'helpers/session_helper.php';
+require __DIR__.'/app/config/config.php';
+require __DIR__.'/app/models/User.php';
+require __DIR__.'/app/helpers/session_helper.php';
 
 // Check if user is already logged in
 requireLogin();

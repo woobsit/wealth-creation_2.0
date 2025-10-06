@@ -1,7 +1,7 @@
 <?php
-require 'config/config.php';
-require 'models/User.php';
-require 'helpers/session_helper.php';
+require __DIR__.'/app/config/config.php';
+require __DIR__.'/app/models/User.php';
+require __DIR__.'/app/helpers/session_helper.php';
 
 // Check if user is already logged in
 requireLogin();
@@ -188,7 +188,7 @@ requireLogin();
                 </p>
             </a>
 
-            <a href="#"
+            <a href="<?php echo (APP_URL . '/wealth-creation/index.php') ?>"
                 class="portal-card flex flex-col p-10 rounded-3xl wc-gradient text-white hover:ring-8 ring-secondary-200/50 transition duration-300 transform">
 
                 <div class="flex-grow flex items-center space-x-6">

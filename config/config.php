@@ -15,7 +15,7 @@ define('DB_NAME', 'wealth_creation');
 
 // Application configuration
 define('APP_NAME', 'WEALTH CREATION ERP');
-define('APP_URL', 'http://localhost/wealth-creation-2.0');
+define('APP_URL', 'http://localhost:8080/woobs_erp/wealth-creation-2.0');
 define('APP_VERSION', '2.0.0');
 
 // Session configuration

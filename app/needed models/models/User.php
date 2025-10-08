@@ -45,8 +45,7 @@ class User {
         
         if($user) {
             // Verify password
-            $hashed_password = $user['password'];
-            if ($password = hash('sha256', $hashed_password)) {
+            if ($user['password'] === hash('sha256', $password)) {
                 //if(password_verify($password, $hashed_password)) {
                 return $user;
             }
@@ -64,8 +63,7 @@ class User {
     
         if ($user) {
             // Step 2: Verify password correctly using password_verify
-            $hashed_password = $user['password'];
-            if ($password = hash('sha256', $hashed_password)) {
+            if ($user['password'] === hash('sha256', $password)) {
                 //if (password_verify($password, $hashed_password)) {
     
                 // Step 3: Get department from staff table
@@ -75,7 +73,6 @@ class User {
     
                 if ($staff) {
                     $department = strtolower($staff['department']);
-    
                     // Step 4: Determine role based on department
                     switch ($department) {
                         case 'accounts':

@@ -2,12 +2,9 @@
 require __DIR__.'/app/config/config.php';
 require __DIR__.'/app/models/User.php';
 require __DIR__.'/app/helpers/session_helper.php';
-
 // Check if user is already logged in
 requireLogin();
-
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,70 +15,68 @@ requireLogin();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-    /*
-         * Custom Tailwind Configuration from your existing file
-         */
-    tailwind.config= {
-        theme: {
-            extend: {
-                fontFamily: {
-                    'inter': ['Inter', 'sans-serif'],
-                }
-
-                ,
-                colors: {
-                    primary: {
-                        50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
-                            400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
-                            800: '#075985', 900: '#0c4a6e',
+    <script>
+        tailwind.config= {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
                     }
 
                     ,
-                    secondary: {
-                        50: '#fdf4ff', 100: '#fae8ff', 200: '#f5d0fe', 300: '#f0abfc',
-                            400: '#e879f9', 500: '#d946ef', 600: '#c026d3', 700: '#a21caf',
-                            800: '#86198f', 900: '#701a75',
-                    }
-                }
-
-                ,
-                animation: {
-                    'fade-in': 'fadeIn 0.6s ease-in-out',
-                        'slide-down': 'slideDown 0.2s ease-out',
-                }
-
-                ,
-                keyframes: {
-                    fadeIn: {
-                        '0%': {
-                            opacity: '0', transform: 'translateY(20px)'
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+                                400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
+                                800: '#075985', 900: '#0c4a6e',
                         }
 
                         ,
-                        '100%': {
-                            opacity: '1', transform: 'translateY(0)'
+                        secondary: {
+                            50: '#fdf4ff', 100: '#fae8ff', 200: '#f5d0fe', 300: '#f0abfc',
+                                400: '#e879f9', 500: '#d946ef', 600: '#c026d3', 700: '#a21caf',
+                                800: '#86198f', 900: '#701a75',
                         }
                     }
 
                     ,
-                    slideDown: {
-                        '0%': {
-                            opacity: '0', transform: 'translateY(-10px)'
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-in-out',
+                            'slide-down': 'slideDown 0.2s ease-out',
+                    }
+
+                    ,
+                    keyframes: {
+                        fadeIn: {
+                            '0%': {
+                                opacity: '0', transform: 'translateY(20px)'
+                            }
+
+                            ,
+                            '100%': {
+                                opacity: '1', transform: 'translateY(0)'
+                            }
                         }
 
                         ,
-                        '100%': {
-                            opacity: '1', transform: 'translateY(0)'
+                        slideDown: {
+                            '0%': {
+                                opacity: '0', transform: 'translateY(-10px)'
+                            }
+
+                            ,
+                            '100%': {
+                                opacity: '1', transform: 'translateY(0)'
+                            }
                         }
                     }
-                }
 
-                ,
+                    ,
+                }
             }
-        }
     }
-
+    </script>
+    <style>
     /* Gradient and Card Styles */
     .woobs-gradient {
         background: linear-gradient(145deg, #0284c7, #0ea5e9);
@@ -115,9 +110,9 @@ requireLogin();
                     class="flex items-center space-x-2 px-4 py-2 bg-white text-secondary-600 border border-secondary-300 rounded-full font-semibold text-sm hover:bg-secondary-50 hover:text-secondary-700 transition duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2"
                     aria-expanded="false" aria-haspopup="true">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H9"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 4H6a2 2 0 00-2 2v12a2 2 0 002 2h7"></path>
-        </svg>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H9"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 4H6a2 2 0 00-2 2v12a2 2 0 002 2h7"></path>
+                    </svg>
                     <span>Log Out</span>
                     <svg class="-mr-1 ml-2 h-5 w-5 transition-transform duration-200 transform" id="chevron-icon"
                         viewBox="0 0 20 20" fill="currentColor">
@@ -127,31 +122,23 @@ requireLogin();
                     </svg>
                 </button>
 
-                <div 
-    id="logout-dropdown" 
-    class="origin-top-right absolute right-0 mt-2 w-72 border border-gray-200 rounded-xl shadow-xl bg-white ring-1 ring-black ring-opacity-5 hidden animate-slide-down p-5" 
-    role="menu" 
-    aria-orientation="vertical" 
-    aria-labelledby="logout-button"
->
-    <p class="text-sm font-medium text-gray-700 mb-3 text-center">Are you sure you want to log out?</p>
-        
-<div class="flex justify-center">
-    <a 
-        href="logout.php" 
-        class="inline-flex items-center justify-center gap-2 w-auto px-6 py-3 text-base font-semibold text-white bg-red-600 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200"
-        role="menuitem"
-    >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H9"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 4H6a2 2 0 00-2 2v12a2 2 0 002 2h7"></path>
-        </svg>
-        Yes, Log Out
-    </a>
-</div>
-
-    
-</div>
+                <div id="logout-dropdown" class="origin-top-right absolute right-0 mt-2 w-72 border border-gray-200 rounded-xl shadow-xl bg-white ring-1 ring-black ring-opacity-5 hidden animate-slide-down p-5" role="menu" aria-orientation="vertical" aria-labelledby="logout-button">
+                    <p class="text-sm font-medium text-gray-700 mb-3 text-center">Are you sure you want to log out?</p>
+                        
+                    <div class="flex justify-center">
+                        <a 
+                            href="logout.php" 
+                            class="inline-flex items-center justify-center gap-2 w-auto px-6 py-3 text-base font-semibold text-white bg-red-600 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200"
+                            role="menuitem"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H9"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 4H6a2 2 0 00-2 2v12a2 2 0 002 2h7"></path>
+                            </svg>
+                            Yes, Log Out
+                        </a>
+                    </div>  
+                </div>
             </div>
         </div>
 
@@ -159,7 +146,7 @@ requireLogin();
             <h1 class="text-5xl font-extrabold text-gray-900 mb-3">
                 <span class="text-primary-600">ERP</span> Access Portal
             </h1>
-            <p class="text-xl text-gray-600">Select the Enterprise Resource Planning system or quick action.</p>
+            <p class="text-xl text-gray-600">Select the ERP system or other resources below.</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-fade-in mb-20">

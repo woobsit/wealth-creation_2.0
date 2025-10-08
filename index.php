@@ -26,28 +26,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $email_err = 'Please enter valid email.';
     } else {
         $email = trim($_POST['email']);
-    }
-    
+    }   
     // Check if password is empty
     if(empty(trim($_POST['pass']))) {
         $password_err = 'Please enter your password.';
     } else {
         $password = trim($_POST['pass']);
-    }
-    
+    }   
     // // Validate credentials
     if(empty($email_err) && empty($password_err)) {
-        
         // Create user object
         $user = new User($databaseObj);
         // Attempt to login
         $loggedInUser = $user->login($email, $password);
         
         if($loggedInUser) {
-           
             // Store data in session variables
             $_SESSION['user_id'] = $loggedInUser['id'];
             $_SESSION['user_level'] = $loggedInUser['user_level'];
+            $_SESSION['department'] = $loggedInUser['department'];
             $_SESSION['first_name'] = $loggedInUser['first_name'];
             $_SESSION['last_name'] = $loggedInUser['last_name'];
             $_SESSION['status'] = $loggedInUser['status'];
@@ -62,7 +59,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -297,9 +293,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <?php if (isset($email_err)): ?>
             <p class="mt-2 text-sm text-red-600 flex items-center">
-              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <!-- <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 000 2v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-              </svg>
+              </svg> -->
               <?php echo $email_err; ?>
             </p>
             <?php endif; ?>
@@ -326,9 +322,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <?php if (isset($password_err)): ?>
             <p class="mt-2 text-sm text-red-600 flex items-center">
-              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <!-- <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 000 2v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-              </svg>
+              </svg> -->
               <?php echo @$password_err; ?>
             </p>
             <?php endif; ?>

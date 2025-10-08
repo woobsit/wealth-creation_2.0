@@ -1,6 +1,20 @@
 <?php
 function isLoggedIn() {
-    return (isset($_SESSION['user_id']));
+    $requiredSessionKeys = [
+        'user_id',
+        'user_level',
+        'department',
+        'first_name',
+        'last_name',
+        'status',
+        'level'
+    ];
+    foreach ($requiredSessionKeys as $key) {
+        if (!isset($_SESSION[$key])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 // Redirect if not logged in

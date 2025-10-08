@@ -2,7 +2,6 @@
 function isLoggedIn() {
     $requiredSessionKeys = [
         'user_id',
-        'user_level',
         'department',
         'first_name',
         'last_name',

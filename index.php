@@ -4,12 +4,8 @@ require __DIR__.'/app/models/User.php';
 require __DIR__.'/app/helpers/session_helper.php';
 
 // Check if user is already logged in
-if(isLoggedIn() && isset($_SESSION['wealthcreation']) ) {
-    redirect('wealth-creation/index.php');
-}
-
-if(isLoggedIn() && isset($_SESSION['woobs']) ) {
-    redirect('woobs/index.php');
+if(isLoggedIn()) {
+    redirect('access.php');
 }
 
 // Initialize variables
@@ -43,7 +39,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         if($loggedInUser) {
             // Store data in session variables
             $_SESSION['user_id'] = $loggedInUser['id'];
-            $_SESSION['user_level'] = $loggedInUser['user_level'];
             $_SESSION['department'] = $loggedInUser['department'];
             $_SESSION['first_name'] = $loggedInUser['first_name'];
             $_SESSION['last_name'] = $loggedInUser['last_name'];

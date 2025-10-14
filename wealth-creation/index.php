@@ -966,13 +966,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div> -->
     </main>
 
-    <footer class="bg-white border-t mt-12">
-        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-            <div class="text-center text-sm text-gray-500">
-                &copy; <?php echo date('Y'); ?> WEALTH CREATION ERP. All rights reserved. Developed by Woobs Resources Ltd.
-            </div>
+    <footer class="bg-fuchsia-700 border-t border-fuchsia-800 mt-12 shadow-inner">
+    <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+        <div class="text-center text-sm text-fuchsia-200">
+            &copy; <?php echo date('Y'); ?> WEALTH CREATION ERP. All rights reserved. Developed by Woobs Resources Ltd.
         </div>
-    </footer>
+    </div>
+</footer>
 
 <script>
     // Amount confirmation validation in cash remittance.
@@ -997,31 +997,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // **JAVASCRIPT FOR DROPDOWN FUNCTIONALITY**
-    function toggleDropdown(id) {
-        const dropdown = document.getElementById(id);
-        if (dropdown) {
-            // Close all other dropdowns (to prevent multiple open menus)
-            document.querySelectorAll('.relative > div.dropdown-menu').forEach(otherDropdown => {
-                if (otherDropdown.id !== id) {
-                    otherDropdown.classList.add('hidden');
-                }
-            });
+  // **JAVASCRIPT FOR DROPDOWN FUNCTIONALITY**
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    if (dropdown) {
+        
+        // 1. Close all currently visible dropdowns
+        // We now select ALL elements with the new 'dropdown-menu' class.
+        document.querySelectorAll('.dropdown-menu').forEach(otherDropdown => {
+            if (otherDropdown.id !== id) {
+                otherDropdown.classList.add('hidden');
+            }
+        });
 
-            // Toggle the clicked one
-            dropdown.classList.toggle('hidden');
-        }
+        // 2. Toggle the clicked one's visibility
+        dropdown.classList.toggle('hidden');
     }
+}
 
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(event) {
-        // Check if the click is outside of any element that triggers or is a dropdown
-        if (!event.target.closest('.relative button') && !event.target.closest('.dropdown-menu')) {
-            document.querySelectorAll('.relative > div.dropdown-menu').forEach(dropdown => {
-                dropdown.classList.add('hidden');
-            });
-        }
-    });
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    // We update the selector here too, to check if the click is outside 
+    // any button or any element with the 'dropdown-menu' class.
+    if (!event.target.closest('.relative button') && !event.target.closest('.dropdown-menu')) {
+        document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
+            dropdown.classList.add('hidden');
+        });
+    }
+});
 
     // **JAVASCRIPT FOR DATATABLES**
     $(document).ready(function() {

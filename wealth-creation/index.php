@@ -7,6 +7,8 @@ require __DIR__.'/../app/models/OfficerPerformanceAnalyzer.php';
 require __DIR__.'/../app/models/OfficerTargetManager.php';
 require __DIR__.'/../app/models/PaymentProcessor.php';
 require __DIR__.'/../app/models/Remittance.php';
+require __DIR__.'/../app/models/FileCache.php';
+
 // Check if user is already logged in
 requireLogin();
 $user_id = $_SESSION['user_id'];
@@ -48,7 +50,7 @@ if ($_SESSION['department'] == "Wealth Creation") {
     $analyzer = new OfficerPerformanceAnalyzer($databaseObj);
     $target_manager = new OfficerTargetManager($databaseObj);
     // Get officer's performance data
-    $officer_info = $analyzer->getOfficerInfo($user_id, false);
+    //$officer_info = $analyzer->getOfficerInfo($user_id, false);
     $officer_targets = $target_manager->getOfficerTargets($user_id, $current_month, $current_year);
     $performance_summary = $target_manager->getOfficerPerformanceSummary($user_id, $current_month, $current_year);
     $daily_performance = $analyzer->getOfficerDailyPerformance($user_id, $current_month, $current_year, false);
@@ -741,7 +743,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-calendar-day text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Daily Target</p>
+                            <p class="text-sm font-medium text-gray-500">Avg. Daily Target</p>
                             <p class="text-2xl font-bold text-gray-900">
                                 ₦<?php echo number_format($daily_target); ?>
                             </p>

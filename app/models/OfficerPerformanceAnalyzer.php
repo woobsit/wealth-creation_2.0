@@ -376,93 +376,193 @@ class OfficerPerformanceAnalyzer {
     /**
      * Get officer performance rating
      */
-    public function getOfficerRating($officer_id, $month, $year, $is_other_staff = false) {
-        // Get officer's total
-        $this->db->query("
-            SELECT COALESCE(SUM(amount_paid), 0) as officer_total 
-            FROM account_general_transaction_new 
-            WHERE remitting_id = :officer_id 
-            AND MONTH(date_of_payment) = :month 
-            AND YEAR(date_of_payment) = :year
-            AND (approval_status = 'Approved')
-        ");
+    // public function getOfficerRating($officer_id, $month, $year, $is_other_staff = false) {
+    //     // Get officer's total
+    //     $this->db->query("
+    //         SELECT COALESCE(SUM(amount_paid), 0) as officer_total 
+    //         FROM account_general_transaction_new 
+    //         WHERE remitting_id = :officer_id 
+    //         AND MONTH(date_of_payment) = :month 
+    //         AND YEAR(date_of_payment) = :year
+    //         AND (approval_status = 'Approved')
+    //     ");
         
-        $this->db->bind(':officer_id', $officer_id);
-        $this->db->bind(':month', $month);
-        $this->db->bind(':year', $year);
+    //     $this->db->bind(':officer_id', $officer_id);
+    //     $this->db->bind(':month', $month);
+    //     $this->db->bind(':year', $year);
         
-        $officer_result = $this->db->single();
-        $officer_total = $officer_result['officer_total'];
+    //     $officer_result = $this->db->single();
+    //     $officer_total = $officer_result['officer_total'];
         
-        // Get department average
-        if ($is_other_staff) {
-            $this->db->query("
-                SELECT AVG(monthly_totals.total) as dept_average
-                FROM (
-                    SELECT 
-                        so.id,
-                        COALESCE(SUM(t.amount_paid), 0) as total
-                    FROM staffs_others so
-                    LEFT JOIN account_general_transaction_new t ON so.id = t.remitting_id
-                        AND MONTH(t.date_of_payment) = :month 
-                        AND YEAR(t.date_of_payment) = :year
-                        AND (t.approval_status = 'Approved' OR t.approval_status = '')
-                    GROUP BY so.id
-                ) as monthly_totals
-            ");
-        } else {
-            $this->db->query("
-                SELECT AVG(monthly_totals.total) as dept_average
-                FROM (
-                    SELECT 
-                        s.user_id,
-                        COALESCE(SUM(t.amount_paid), 0) as total
-                    FROM staffs s
-                    LEFT JOIN account_general_transaction_new t ON s.user_id = t.remitting_id
-                        AND MONTH(t.date_of_payment) = :month 
-                        AND YEAR(t.date_of_payment) = :year
-                        AND (t.approval_status = 'Approved')
-                    WHERE s.department = 'Wealth Creation'
-                    GROUP BY s.user_id
-                ) as monthly_totals
-            ");
-        }
+    //     // Get department average
+    //     if ($is_other_staff) {
+    //         $this->db->query("
+    //             SELECT AVG(monthly_totals.total) as dept_average
+    //             FROM (
+    //                 SELECT 
+    //                     so.id,
+    //                     COALESCE(SUM(t.amount_paid), 0) as total
+    //                 FROM staffs_others so
+    //                 LEFT JOIN account_general_transaction_new t ON so.id = t.remitting_id
+    //                     AND MONTH(t.date_of_payment) = :month 
+    //                     AND YEAR(t.date_of_payment) = :year
+    //                     AND (t.approval_status = 'Approved' OR t.approval_status = '')
+    //                 GROUP BY so.id
+    //             ) as monthly_totals
+    //         ");
+    //     } else {
+    //         $this->db->query("
+    //             SELECT AVG(monthly_totals.total) as dept_average
+    //             FROM (
+    //                 SELECT 
+    //                     s.user_id,
+    //                     COALESCE(SUM(t.amount_paid), 0) as total
+    //                 FROM staffs s
+    //                 LEFT JOIN account_general_transaction_new t ON s.user_id = t.remitting_id
+    //                     AND MONTH(t.date_of_payment) = :month 
+    //                     AND YEAR(t.date_of_payment) = :year
+    //                     AND (t.approval_status = 'Approved')
+    //                 WHERE s.department = 'Wealth Creation'
+    //                 GROUP BY s.user_id
+    //             ) as monthly_totals
+    //         ");
+    //     }
         
-        $this->db->bind(':month', $month);
-        $this->db->bind(':year', $year);
+    //     $this->db->bind(':month', $month);
+    //     $this->db->bind(':year', $year);
         
-        $avg_result = $this->db->single();
-        $dept_average = isset($avg_result['dept_average']) ? $avg_result['dept_average'] : 0;
+    //     $avg_result = $this->db->single();
+    //     $dept_average = isset($avg_result['dept_average']) ? $avg_result['dept_average'] : 0;
         
-        // Calculate performance ratio
-        $performance_ratio = $dept_average > 0 ? ($officer_total / $dept_average) * 100 : 0;
+    //     // Calculate performance ratio
+    //     $performance_ratio = $dept_average > 0 ? ($officer_total / $dept_average) * 100 : 0;
         
-        // Determine rating
-        if ($performance_ratio >= 150) {
-            $rating = 'Exceptional';
-            $rating_class = 'bg-green-100 text-green-800';
-        } elseif ($performance_ratio >= 120) {
-            $rating = 'Excellent';
-            $rating_class = 'bg-blue-100 text-blue-800';
-        } elseif ($performance_ratio >= 100) {
-            $rating = 'Good';
-            $rating_class = 'bg-yellow-100 text-yellow-800';
-        } elseif ($performance_ratio >= 80) {
-            $rating = 'Fair';
-            $rating_class = 'bg-orange-100 text-orange-800';
-        } else {
-            $rating = 'Needs Improvement';
-            $rating_class = 'bg-red-100 text-red-800';
-        }
+    //     // Determine rating
+    //     if ($performance_ratio >= 150) {
+    //         $rating = 'Exceptional';
+    //         $rating_class = 'bg-green-100 text-green-800';
+    //     } elseif ($performance_ratio >= 120) {
+    //         $rating = 'Excellent';
+    //         $rating_class = 'bg-blue-100 text-blue-800';
+    //     } elseif ($performance_ratio >= 100) {
+    //         $rating = 'Good';
+    //         $rating_class = 'bg-yellow-100 text-yellow-800';
+    //     } elseif ($performance_ratio >= 80) {
+    //         $rating = 'Fair';
+    //         $rating_class = 'bg-orange-100 text-orange-800';
+    //     } else {
+    //         $rating = 'Needs Improvement';
+    //         $rating_class = 'bg-red-100 text-red-800';
+    //     }
         
-        return [
-            'officer_total' => $officer_total,
-            'dept_average' => $dept_average,
-            'performance_ratio' => $performance_ratio,
-            'rating' => $rating,
-            'rating_class' => $rating_class
-        ];
+    //     return [
+    //         'officer_total' => $officer_total,
+    //         'dept_average' => $dept_average,
+    //         'performance_ratio' => $performance_ratio,
+    //         'rating' => $rating,
+    //         'rating_class' => $rating_class
+    //     ];
+    // }
+
+// Make sure the FileCache class is defined and loaded above this function.
+
+public function getOfficerRating($officer_id, $month, $year, $is_other_staff = false) {
+    // Instantiate the FileCache class (assuming default directory './cache/')
+    $cache = new FileCache(); 
+    
+    // --- 1. Caching Check ---
+    $cache_key_filename = FileCache::generateKey($officer_id, $month, $year);
+    $cached_data = $cache->get($cache_key_filename);
+
+    if ($cached_data) {
+        return $cached_data; // Return cached result instantly
     }
+
+    // --- If not cached, prepare for optimized DB queries ---
+
+    // REQUIRED OPTIMIZATION: Calculate index-friendly date range
+    $start_date = date('Y-m-01', strtotime("$year-$month-01"));
+    $end_date = date('Y-m-t', strtotime("$year-$month-01")); 
+    
+    // 1. Get officer's Actual Revenue (Amount_posted_gl_monthly)
+    // USING THE OPTIMIZED QUERY WITH DATE RANGES
+    $this->db->query("
+        SELECT COALESCE(SUM(t.amount_paid), 0) as officer_total 
+        FROM account_general_transaction_new t
+        INNER JOIN staffs s ON t.remitting_id = s.user_id 
+        WHERE t.remitting_id = :officer_id 
+        AND s.department = 'Wealth Creation' 
+        AND t.date_of_payment BETWEEN :start_date AND :end_date /* FAST FILTER */
+        AND t.approval_status = 'Approved'
+    ");
+    
+    // Bind parameters for the optimized query
+    $this->db->bind(':officer_id', $officer_id);
+    $this->db->bind(':start_date', $start_date); // New bind for range start
+    $this->db->bind(':end_date', $end_date);     // New bind for range end
+    
+    $officer_result = $this->db->single();
+    $officer_total = $officer_result['officer_total']; 
+
+    // 2. Get officer's Monthly Target (The Denominator)
+    // This query is fast but parameters must be rebound.
+    $this->db->query("
+        SELECT COALESCE(SUM(monthly_target), 0) as target_total 
+        FROM officer_monthly_targets 
+        WHERE officer_id = :officer_id 
+        AND target_month = :month 
+        AND target_year = :year
+        AND status = 'Active'
+    ");
+    
+    // Rebind parameters for the second query
+    $this->db->bind(':officer_id', $officer_id);
+    $this->db->bind(':month', $month);
+    $this->db->bind(':year', $year);
+
+    $target_result = $this->db->single();
+    $monthly_target = $target_result['target_total']; 
+    
+    // 3. Calculate performance ratio and rating
+    
+    if ($monthly_target > 0) {
+        $performance_ratio = ($officer_total / $monthly_target) * 100;
+    } else {
+        $performance_ratio = 0; 
+    }
+    
+    // Determine rating (Your existing logic)
+    if ($performance_ratio >= 150) {
+        $rating = 'Exceptional';
+        $rating_class = 'bg-green-100 text-green-800';
+    } elseif ($performance_ratio >= 120) {
+        $rating = 'Excellent';
+        $rating_class = 'bg-blue-100 text-blue-800';
+    } elseif ($performance_ratio >= 100) {
+        $rating = 'Good';
+        $rating_class = 'bg-yellow-100 text-yellow-800';
+    } elseif ($performance_ratio >= 80) {
+        $rating = 'Fair';
+        $rating_class = 'bg-orange-100 text-orange-800';
+    } else {
+        $rating = 'Needs Improvement';
+        $rating_class = 'bg-red-100 text-red-800';
+    }
+
+    // Create the final result array
+    $final_result = [
+        'officer_total' => $officer_total,
+        'monthly_target' => $monthly_target,
+        'performance_ratio' => $performance_ratio,
+        'rating' => $rating,
+        'rating_class' => $rating_class
+    ];
+
+    // 4. Cache the result for next time
+    $cache->set($cache_key_filename, $final_result); 
+
+    return $final_result;
+}
 
     public function getOfficerRatingo($officer_id, $month, $year, $is_other_staff = false) {
         // Get officer's total

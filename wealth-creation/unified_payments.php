@@ -5,7 +5,7 @@ require __DIR__.'/../app/models/User.php';
 require __DIR__.'/../app/models/PaymentProcessor.php';
 require __DIR__.'/../app/models/TransactionManager.php';
 requireLogin();
-date_default_timezone_set('Africa/Lagos');
+
 
 $db = new Database();
 $paymentProcessor = new PaymentProcessor($db);

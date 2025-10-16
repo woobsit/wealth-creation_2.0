@@ -229,6 +229,16 @@ class Remittance {
         ");
         return $this->db->resultSet();
     }
+
+    public function getWealthCreationOfficers_new() {
+        $this->db->query("
+            SELECT id, first_name, last_name
+            FROM _users 
+            WHERE department = 'Wealth Creation' 
+            ORDER BY first_name ASC
+        ");
+        return $this->db->resultSet();
+    }
     
     /**
      * Get remittances for a specific date
@@ -342,9 +352,9 @@ class Remittance {
             }
             
             // Get officer name
-            $this->db->query("SELECT full_name FROM staffs WHERE user_id = :officer_id");
-            $this->db->bind(':officer_id', $data['officer_id']);
-            $officer = $this->db->single();
+            // $this->db->query("SELECT first_name, last_name FROM _users WHERE id = :officer_id");
+            // $this->db->bind(':officer_id', $data['officer_id']);
+            // $officer = $this->db->single();
             
             // Insert remittance
             $this->db->query("
@@ -365,7 +375,7 @@ class Remittance {
             $this->db->bind(':no_of_receipts', $data['no_of_receipts']);
             $this->db->bind(':category', $data['category']);
             $this->db->bind(':remitting_officer_id', $data['officer_id']);
-            $this->db->bind(':remitting_officer_name', $officer['full_name']);
+            $this->db->bind(':remitting_officer_name', $data['officer_name']);
             $this->db->bind(':posting_officer_id', $data['posting_officer_id']);
             $this->db->bind(':posting_officer_name', $data['posting_officer_name']);
             
@@ -407,6 +417,39 @@ class Remittance {
         $result = $this->db->single();
         
         return $result['count'] == 0;
+    }
+
+    //get remittance balance for officer (all remittance category)
+    public function getofficerAllRemittanceBalance($officer_id, $current_date) {
+        // Get amount posted today
+        $this->db->query("
+            SELECT COALESCE(SUM(amount_paid), 0) as amount_posted 
+            FROM account_general_transaction_new 
+            WHERE remitting_id = :officer_id 
+            AND date_of_payment = :current_date
+        ");
+        $this->db->bind(':officer_id', $officer_id);
+        $this->db->bind(':current_date', $current_date);
+        $posted = $this->db->single();
+        
+        // Get amount remitted today
+        $this->db->query("
+            SELECT COALESCE(SUM(amount_paid), 0) as amount_remitted, remit_id, date
+            FROM cash_remittance 
+            WHERE remitting_officer_id = :officer_id  
+            AND date = :current_date
+        ");
+        $this->db->bind(':officer_id', $officer_id);
+        $this->db->bind(':current_date', $current_date);
+        $remitted = $this->db->single();
+        
+        return [
+            'amount_posted' => $posted['amount_posted'],
+            'amount_remitted' => $remitted['amount_remitted'],
+            'unposted' => $remitted['amount_remitted'] - $posted['amount_posted'],
+            'remit_id' => isset($remitted['remit_id']) ? $remitted['remit_id'] : '',
+            'date' => isset($remitted['date']) ? $remitted['date'] : ''
+        ];
     }
 }
 ?>

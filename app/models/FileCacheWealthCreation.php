@@ -1,5 +1,5 @@
 <?php
-class FileCache {
+class FileCacheWealthCreation {
     private string $cache_dir = __DIR__ . '/../cache/';
     private const DEFAULT_TTL = 3600; // 1 hour (Time To Live in seconds)
 
@@ -10,7 +10,11 @@ class FileCache {
         
         // Ensure the cache directory exists and is writable
         if (!is_dir($this->cache_dir)) {
-            mkdir($this->cache_dir, 0777, true);
+
+           if (!mkdir($this->cache_dir, 0777, true)) {
+                // You might want to throw an exception here in a production environment
+                error_log("Failed to create cache directory: " . $this->cache_dir);
+            }
         }
     }
 
@@ -37,7 +41,7 @@ class FileCache {
                 return unserialize($contents);
             } else {
                 // Cache expired, delete the old file
-                unlink($file_path);
+                @unlink($file_path);
             }
         }
         return false;

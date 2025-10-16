@@ -335,43 +335,61 @@ class OfficerPerformanceAnalyzer {
     /**
      * Get officer performance trends (last 6 months)
      */
-    public function getOfficerTrends($officer_id, $current_month, $current_year, $is_other_staff = false) {
-        $trends = [];
-        
-        for ($i = 5; $i >= 0; $i--) {
-            $month = $current_month - $i;
-            $year = $current_year;
-            
-            if ($month <= 0) {
-                $month += 12;
-                $year--;
-            }
-            
-            $this->db->query("
-                SELECT COALESCE(SUM(amount_paid), 0) as monthly_total 
-                FROM account_general_transaction_new 
-                WHERE remitting_id = :officer_id 
-                AND MONTH(date_of_payment) = :month 
-                AND YEAR(date_of_payment) = :year
-                AND (approval_status = 'Approved' OR approval_status = '')
-            ");
-            
-            $this->db->bind(':officer_id', $officer_id);
-            $this->db->bind(':month', $month);
-            $this->db->bind(':year', $year);
-            
-            $result = $this->db->single();
-            
-            $trends[] = [
-                'month' => $month,
-                'year' => $year,
-                'month_name' => date('M Y', mktime(0, 0, 0, $month, 1, $year)),
-                'total' => $result['monthly_total']
-            ];
-        }
-        
-        return $trends;
+  public function getOfficerTrends($officer_id, $current_month, $current_year, $is_other_staff = false) {
+    // Instantiate the FileCacheWealthCreation class
+    $cache = new FileCacheWealthCreation(); 
+    
+    // 1. Generate a unique cache key for the entire trend (6 months)
+    // The key must include the current period to ensure the cache changes monthly.
+    $cache_key_filename = FileCacheWealthCreation::generateKey($officer_id, $current_month, $current_year) . '_trends';
+    
+    // 2. Check the cache
+    $cached_data = $cache->get($cache_key_filename);
+
+    if ($cached_data) {
+        return $cached_data; // Cache Hit: Return the stored array instantly
     }
+
+    // --- Cache Miss: Run the six slow DB queries ---
+    
+    $trends = [];
+    
+    for ($i = 5; $i >= 0; $i--) {
+        // Calculate the month/year for the historical data
+        $time = strtotime("{$current_year}-{$current_month}-01 -{$i} months");
+        $month = date('n', $time);
+        $year = date('Y', $time);
+        
+        // Original Query (Note: Runs 6 times and uses slow MONTH()/YEAR() functions)
+        $this->db->query("
+            SELECT COALESCE(SUM(amount_paid), 0) as monthly_total 
+            FROM account_general_transaction_new 
+            WHERE remitting_id = :officer_id 
+            AND MONTH(date_of_payment) = :month 
+            AND YEAR(date_of_payment) = :year
+            AND (approval_status = 'Approved' OR approval_status = '')
+        ");
+        
+        $this->db->bind(':officer_id', $officer_id);
+        $this->db->bind(':month', $month);
+        $this->db->bind(':year', $year);
+        
+        $result = $this->db->single();
+        
+        $trends[] = [
+            'month' => (int)$month,
+            'year' => (int)$year,
+            // Use date() function to format the month name correctly
+            'month_name' => date('M Y', mktime(0, 0, 0, $month, 1, $year)),
+            'total' => $result['monthly_total']
+        ];
+    }
+    
+    // 3. Cache the entire result (the array of 6 months)
+    $cache->set($cache_key_filename, $trends); 
+
+    return $trends;
+}
     
     /**
      * Get officer performance rating
@@ -464,14 +482,14 @@ class OfficerPerformanceAnalyzer {
     //     ];
     // }
 
-// Make sure the FileCache class is defined and loaded above this function.
+// Make sure the FileCacheWealthCreation class is defined and loaded above this function.
 
 public function getOfficerRating($officer_id, $month, $year, $is_other_staff = false) {
-    // Instantiate the FileCache class (assuming default directory './cache/')
-    $cache = new FileCache(); 
+    // Instantiate the FileCacheWealthCreation class (assuming default directory './cache/')
+    $cache = new FileCacheWealthCreation(); 
     
     // --- 1. Caching Check ---
-    $cache_key_filename = FileCache::generateKey($officer_id, $month, $year);
+    $cache_key_filename = FileCacheWealthCreation::generateKey($officer_id, $month, $year);
     $cached_data = $cache->get($cache_key_filename);
 
     if ($cached_data) {
@@ -735,53 +753,81 @@ public function getOfficerRating($officer_id, $month, $year, $is_other_staff = f
     /**
      * Get officer efficiency metrics
      */
-    public function getOfficerEfficiencyMetrics($officer_id, $month, $year, $is_other_staff = false) {
-        // Get basic performance data
-        $this->db->query("
-            SELECT 
-                COUNT(DISTINCT date_of_payment) as working_days,
-                COUNT(*) as total_transactions,
-                SUM(amount_paid) as total_amount,
-                AVG(amount_paid) as avg_transaction_amount,
-                MIN(amount_paid) as min_transaction,
-                MAX(amount_paid) as max_transaction
-            FROM account_general_transaction_new 
-            WHERE remitting_id = :officer_id 
-            AND MONTH(date_of_payment) = :month 
-            AND YEAR(date_of_payment) = :year
-            AND (approval_status = 'Approved' OR approval_status = '')
-        ");
-        
-        $this->db->bind(':officer_id', $officer_id);
-        $this->db->bind(':month', $month);
-        $this->db->bind(':year', $year);
-        
-        $metrics = $this->db->single();
-        
-        // Calculate efficiency indicators
-        $total_days_in_month = date('t', mktime(0, 0, 0, $month, 1, $year));
-        $working_days = isset($metrics['working_days']) ? $metrics['working_days'] : 0;
-        $attendance_rate = ($working_days / $total_days_in_month) * 100;
-        
-        $productivity_score = 0;
-        if ($working_days > 0) {
-            $daily_avg = $metrics['total_amount'] / $working_days;
-            $transaction_efficiency = $metrics['total_transactions'] / $working_days;
-            $productivity_score = ($daily_avg * 0.7) + ($transaction_efficiency * 0.3);
-        }
-        
-        return [
-            'working_days' => $working_days,
-            'total_transactions' => isset($metrics['total_transactions']) ? $metrics['total_transactions'] : 0,
-            'total_amount' => $metrics['total_amount'] ? $metrics['total_amount'] : 0,
-            'avg_transaction_amount' => isset($metrics['avg_transaction_amount']) ? $metrics['avg_transaction_amount'] : 0,
-            'min_transaction' => isset($metrics['min_transaction']) ? $metrics['min_transaction'] : 0,
-            'max_transaction' => isset($metrics['max_transaction']) ? $metrics['max_transaction'] : 0,
-            'attendance_rate' => $attendance_rate,
-            'productivity_score' => $productivity_score,
-            'daily_average' => $working_days > 0 ? $metrics['total_amount'] / $working_days : 0
-        ];
+   public function getOfficerEfficiencyMetrics($officer_id, $month, $year, $is_other_staff = false) {
+    // Instantiate the FileCacheWealthCreation class
+    // NOTE: Ensure FileCacheWealthCreation is defined and the cache directory is writable.
+    $cache = new FileCacheWealthCreation(); 
+    
+    // 1. Generate a unique cache key
+    $cache_key_filename = FileCacheWealthCreation::generateKey($officer_id, $month, $year) . '_efficiency';
+    
+    // 2. Check the cache
+    $cached_data = $cache->get($cache_key_filename);
+
+    if ($cached_data) {
+        return $cached_data; // Cache Hit: Return the stored array instantly
     }
+
+    // --- Cache Miss: Execute the original slow DB query ---
+    
+    // Original Query (Using MONTH()/YEAR() functions on indexed column)
+    $this->db->query("
+        SELECT 
+            COUNT(DISTINCT date_of_payment) as working_days,
+            COUNT(*) as total_transactions,
+            SUM(amount_paid) as total_amount,
+            AVG(amount_paid) as avg_transaction_amount,
+            MIN(amount_paid) as min_transaction,
+            MAX(amount_paid) as max_transaction
+        FROM account_general_transaction_new 
+        WHERE remitting_id = :officer_id 
+        AND MONTH(date_of_payment) = :month 
+        AND YEAR(date_of_payment) = :year
+        AND (approval_status = 'Approved' OR approval_status = '')
+    ");
+    
+    // Bind parameters for the original query
+    $this->db->bind(':officer_id', $officer_id);
+    $this->db->bind(':month', $month);
+    $this->db->bind(':year', $year);
+    
+    $metrics = $this->db->single();
+    
+    // 3. Calculate efficiency indicators (PHP Logic)
+    $total_days_in_month = date('t', mktime(0, 0, 0, $month, 1, $year));
+    $working_days = isset($metrics['working_days']) ? $metrics['working_days'] : 0;
+    
+    // Defensive coding for division by zero
+    $days_in_month_safe = $total_days_in_month > 0 ? $total_days_in_month : 1;
+    $attendance_rate = ($working_days / $days_in_month_safe) * 100;
+    
+    $productivity_score = 0;
+    $daily_avg = 0;
+    
+    if ($working_days > 0 && isset($metrics['total_amount'])) {
+        $daily_avg = $metrics['total_amount'] / $working_days;
+        $transaction_efficiency = (isset($metrics['total_transactions']) ? $metrics['total_transactions'] : 0) / $working_days;
+        $productivity_score = ($daily_avg * 0.7) + ($transaction_efficiency * 0.3);
+    }
+    
+    // 4. Build the final result array
+    $final_result = [
+        'working_days' => $working_days,
+        'total_transactions' => isset($metrics['total_transactions']) ? $metrics['total_transactions'] : 0,
+        'total_amount' => isset($metrics['total_amount']) ? $metrics['total_amount'] : 0,
+        'avg_transaction_amount' => isset($metrics['avg_transaction_amount']) ? $metrics['avg_transaction_amount'] : 0,
+        'min_transaction' => isset($metrics['min_transaction']) ? $metrics['min_transaction'] : 0,
+        'max_transaction' => isset($metrics['max_transaction']) ? $metrics['max_transaction'] : 0,
+        'attendance_rate' => $attendance_rate,
+        'productivity_score' => $productivity_score,
+        'daily_average' => $daily_avg 
+    ];
+
+    // 5. Cache the result for next time
+    $cache->set($cache_key_filename, $final_result); 
+
+    return $final_result;
+}
     
     /**
      * Get top performers for the month

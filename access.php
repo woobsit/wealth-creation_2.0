@@ -4,6 +4,18 @@ require __DIR__.'/app/models/User.php';
 require __DIR__.'/app/helpers/session_helper.php';
 // Check if user is already logged in
 requireLogin();
+
+$first_name = isset($_SESSION['first_name']) ? htmlspecialchars($_SESSION['first_name']) : '';
+$last_name = isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : '';
+
+// 2. Combine them into a single display name. Use 'User' as a fallback if names aren't set.
+if ($first_name && $last_name) {
+    $user_name = $first_name . ' ' . $last_name;
+} elseif ($first_name) {
+    $user_name = $first_name;
+} else {
+    $user_name = 'User'; // Default fallback
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -105,7 +117,9 @@ requireLogin();
         <div class="absolute top-0 right-0 z-20">
 
             <div class="relative inline-block text-left">
-
+<span class="text-sm font-semibold text-gray-700 mb-3 mr-8 hidden sm:inline-block">
+                    Welcome, <?php echo $user_name; ?>
+                </span>
                 <button id="logout-button" type="button"
                     class="flex items-center space-x-2 px-4 py-2 bg-white text-secondary-600 border border-secondary-300 rounded-full font-semibold text-sm hover:bg-secondary-50 hover:text-secondary-700 transition duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2"
                     aria-expanded="false" aria-haspopup="true">

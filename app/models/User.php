@@ -31,27 +31,51 @@ class User {
     }
     
     // Login user
+    // public function login($email, $password) {
+    //     // Prepare query
+    //     $this->db->query('SELECT * FROM _users WHERE email = :email AND status = "active"');
+        
+    //     // Bind value
+    //     $this->db->bind(':email', $email);
+        
+    //     // Get single record
+    //     $user = $this->db->single();
+        
+    //     if($user) {
+    //         // Verify password
+    //         $hashed_password = $user['password'];
+    //         if ($password = hash('sha256', $hashed_password)) {
+    //             //if(password_verify($password, $hashed_password)) {
+    //             return $user;
+    //         }
+    //     }
+        
+    //     return false;
+    // }
+
     public function login($email, $password) {
-        // Prepare query
         $this->db->query('SELECT * FROM _users WHERE email = :email AND status = "active"');
-        
-        // Bind value
         $this->db->bind(':email', $email);
-        
         // Get single record
         $user = $this->db->single();
         
-        if($user) {
-            // Verify password
+        if ($user) {
             $hashed_password = $user['password'];
-            if ($password = hash('sha256', $hashed_password)) {
-                //if(password_verify($password, $hashed_password)) {
-                return $user;
+
+            // Try new PHP native password hashing
+            if (password_verify($password, $hashed_password)) {
+                return $user; // Password verified with password_hash()
+            }
+
+            // Fallback for legacy SHA-256 users ---
+            if (hash('sha256', $password) == $hashed_password) {
+                return $user; // Password matched legacy hash
             }
         }
-        
-        return false;
+
+        return false; 
     }
+
 
     public function loginwithrole($email, $password) {
         // Step 1: Check user by email and active status

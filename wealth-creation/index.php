@@ -14,6 +14,10 @@ require __DIR__.'/../app/models/FileCacheAccount.php';
 requireLogin();
 $user_id = $_SESSION['user_id'];
 $transaction =  new Transaction($databaseObj);
+$remittancemanager = new Remittance($databaseObj);
+$processor = new PaymentProcessor($databaseObj);
+$analyzer = new OfficerPerformanceAnalyzer($databaseObj);
+$target_manager = new OfficerTargetManager($databaseObj);
 //shop renewal
 $renewalSummary = $transaction->getShopRenewalStatusSummary($databaseObj);
 //corrected Records
@@ -28,9 +32,6 @@ $month_name = date('F');
 
 // Account officers
 if ($_SESSION['department'] == "Accounts") {
-    $remittancemanager = new Remittance($databaseObj);
-    //var_dump($remittancemanager);
-   // exit();
     $stats = $transaction->getTransactionStats();
     
     $pendingTransactions = [];
@@ -40,6 +41,7 @@ if ($_SESSION['department'] == "Accounts") {
     $summary = $remittancemanager->getRemittanceSummary($current_date);
     $officers = $remittancemanager->getWealthCreationOfficers();
     //$declinedTransactions = $transaction->countDeclinedPostsByOfficer($userId, $_SESSION['department']);
+
 }
 // Account officers
 if ($_SESSION['department'] == 'Audit/Inspections') {
@@ -50,9 +52,6 @@ if ($_SESSION['department'] == 'Audit/Inspections') {
 }
 //leasing officers
 if ($_SESSION['department'] == "Wealth Creation") {
-    $processor = new PaymentProcessor($databaseObj);
-    $analyzer = new OfficerPerformanceAnalyzer($databaseObj);
-    $target_manager = new OfficerTargetManager($databaseObj);
     // Get officer's performance data
     //$officer_info = $analyzer->getOfficerInfo($user_id, false);
     $officer_targets = $target_manager->getOfficerTargets($user_id, $current_month, $current_year);
@@ -68,8 +67,8 @@ if ($_SESSION['department'] == "Wealth Creation") {
     $trends = $analyzer->getOfficerTrends($user_id, $current_month, $current_year, false);
     
     // Get remittance balance
-    $remittance_data = $processor->getRemittanceBalance($user_id, $current_date);
-    
+    $remittances = $remittancemanager->getRemittancesByDate($current_date);
+    $remittance_data = $remittancemanager->getofficerAllRemittanceBalance($user_id, $current_date);//Get remitance summary for offcers
     // Calculate today's progress
     $today_collections = isset($daily_performance[date('j')]) ? $daily_performance[date('j')] : 0;
     $daily_target = 0;
@@ -129,41 +128,41 @@ if ($_SESSION['department'] == "Wealth Creation") {
 // Handle form submissions
 $message = '';
 $error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['btn_post'])) {
-        print_r($_POST);
-        exit;
-
-        // Validate amounts match
-        if ($_POST['amount_paid'] !== $_POST['confirm_amount_paid']) {
-            $error = 'Amount and confirmation amount do not match!';
-        } else {
-            $date_parts = explode('/', $_POST['date_of_payment']);
-            $formatted_date = $date_parts[2] . '-' . $date_parts[1] . '-' . $date_parts[0];
+// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+//     if (isset($_POST['btn_post'])) {
+//         //Array ( [posting_officer_id] => 191 [posting_officer_name] => Bamikole FATIMEHIN [date_of_payment] => 16/10/2025 [officer] => 53 [officer_name] => Blessing UKPAI [amount_paid] => 20000 [confirm_amount_paid] => 20000 [no_of_receipts] => 2 [category] => Service Charge [btn_post] => ) 
+        
+//         // Validate amounts match
+//         if ($_POST['amount_paid'] !== $_POST['confirm_amount_paid']) {
+//             $error = 'Amount and confirmation amount do not match!';
+//         } else {
+//             $date_parts = explode('/', $_POST['date_of_payment']);
+//             $formatted_date = $date_parts[2] . '-' . $date_parts[1] . '-' . $date_parts[0];
             
-            $remittance_data = [
-                'officer_id' => $_POST['officer'],
-                'date' => $formatted_date,
-                'amount_paid' => preg_replace('/[,]/', '', $_POST['amount_paid']),
-                'no_of_receipts' => $_POST['no_of_receipts'],
-                'category' => $_POST['category'],
-                'posting_officer_id' => $staff['user_id'],
-                'posting_officer_name' => $staff['full_name']
-            ];
+//             $remittance_data = [
+//                 'officer_id' => $_POST['officer'],
+//                 'officer_name' => $_POST['officer_name'],
+//                 'date' => $formatted_date,
+//                 'amount_paid' => preg_replace('/[,]/', '', $_POST['amount_paid']),
+//                 'no_of_receipts' => $_POST['no_of_receipts'],
+//                 'category' => $_POST['category'],
+//                 'posting_officer_id' => $_POST['posting_officer_id'],
+//                 'posting_officer_name' => $_POST['posting_officer_name']
+//             ];
             
-            $result = $manager->processRemittance($remittance_data);
+//             $result = $remittancemanager->processRemittance($remittance_data);
             
-            if ($result['success']) {
-                $message = $result['message'];
-                // Redirect to prevent resubmission
-                header('Location: account_remittance.php?success=1');
-                exit;
-            } else {
-                $error = $result['message'];
-            }
-        }
-    }
-}
+//             if ($result['success']) {
+//                 $message = $result['message'];
+//                 // Redirect to prevent resubmission
+//                 header('Location: account_remittance.php?success=1');
+//                 exit;
+//             } else {
+//                 $error = $result['message'];
+//             }
+//         }
+//     }
+// }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -407,101 +406,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <!-- Account Cash Remittance -->
+        <!-- Account Quick links -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <!-- Cash Remittance Form -->
             <?php if ($_SESSION['department'] === 'Accounts'): ?>
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center mb-4">
-                        <div class="p-2 bg-red-100 rounded-lg mr-3">
-                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900">Cash Remittance</h3>
-                    </div>
-
-                    <form method="POST" class="space-y-4">
-                        <input type="hidden" name="posting_officer_id" value="<?php echo $_SESSION['user_id']; ?>">
-                        <input type="hidden" name="posting_officer_name" value="<?php echo $_SESSION['full_name']; ?>">
-
-                        <!-- Date -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Date of Payment</label>
-                            <input type="text" name="date_of_payment" 
-                                   value="<?php echo date('d/m/Y'); ?>" 
-                                   readonly
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50">
-                        </div>
-
-                        <!-- Officer -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Officer</label>
-                            <select name="officer" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Select...</option>
-                                <?php foreach ($officers as $officer): ?>
-                                    <option value="<?php echo $officer['user_id']; ?>">
-                                        <?php echo $officer['full_name']; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <!-- Amount -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount Remitted</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-2 text-gray-500">₦</span>
-                                <input type="password" name="amount_paid" id="amount_paid" required
-                                       class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-
-                        <!-- Confirm Amount -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Amount Remitted</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-2 text-gray-500">₦</span>
-                                <input type="text" name="confirm_amount_paid" id="confirm_amount_paid" required
-                                       class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <span id="message" class="text-sm mt-1"></span>
-                        </div>
-
-                        <!-- Number of Receipts -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">No of Receipts</label>
-                            <input type="number" name="no_of_receipts" required min="1"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <!-- Category -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <select name="category" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Select...</option>
-                                <option value="Rent">Rent Collection</option>
-                                <option value="Service Charge">Service Charge Collection</option>
-                                <option value="Other Collection">Other Collection</option>
-                            </select>
-                        </div>
-
-                        <!-- Submit Buttons -->
-                        <div class="flex space-x-3">
-                            <button type="submit" name="btn_post"
-                                    class="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                Post Remittance
-                            </button>
-                            <button type="reset"
-                                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                                Clear
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                
             </div>
 
             <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
@@ -512,7 +422,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h2 class="text-xl font-bold text-gray-900">Collection Management</h2>
                 </div>
                 <div class="space-y-3">
-                    <a href="account/account_remittance.php" class="card-hover block bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-100 transition-all duration-200">
+                    <a href="account_remittance.php" class="card-hover block bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-100 transition-all duration-200">
                         <div class="flex items-center">
                             <i class="fas fa-money-bill-wave text-orange-600 mr-3"></i>
                             <span class="font-medium text-gray-900">Account Remittance</span>

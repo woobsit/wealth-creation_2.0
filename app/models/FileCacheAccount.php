@@ -2,14 +2,14 @@
 
 class FileCacheAccount {
     // Shorter Time To Live for real-time Account Dashboard data (25 minutes)
-    private const ACCOUNT_TTL = 3600; // 1 hour (Time To Live in seconds)
+    const ACCOUNT_TTL = 3600; // 1 hour (Time To Live in seconds)
     
     // Default directory, assuming it's in the same structure as the other cache class
-    private string $cache_dir = __DIR__ . '/../cache/'; // NOTE: Using a different subdirectory is safer
+    private $cache_dir = __DIR__ . '/../cache/'; // NOTE: Using a different subdirectory is safer
     
     // We'll use the shorter TTL here for consistency, though the constructor doesn't directly use it.
     
-    public function __construct(string $custom_dir = '') {
+    public function __construct($custom_dir = '') {
         if (!empty($custom_dir)) {
             $this->cache_dir = rtrim($custom_dir, '/') . '/';
         }
@@ -28,7 +28,7 @@ class FileCacheAccount {
      * Generates a unique, URL-safe key for Account Dashboard Stats.
      * This key is tied to the current period to ensure cache freshness.
      */
-    public static function generateAccountStatsKey(): string {
+    public static function generateAccountStatsKey() {
         // Use Y-W (Year-Week) for the key, as it changes less frequently than day but more frequently than month.
         $period_key = date('Y-W'); 
         $raw_key = "account_stats_{$period_key}";
@@ -38,7 +38,7 @@ class FileCacheAccount {
     /**
      * Retrieves data from the file cache if it is not expired (using ACCOUNT_TTL).
      */
-    public function get(string $key): array|false {
+    public function get($key) {
         $file_path = $this->cache_dir . $key;
 
         if (file_exists($file_path)) {
@@ -58,7 +58,7 @@ class FileCacheAccount {
     /**
      * Saves data to the file cache.
      */
-    public function set(string $key, array $data): bool {
+    public function set($key, $data) {
         $file_path = $this->cache_dir . $key;
         // Serialize the array before saving it to the file
         $contents = serialize($data);

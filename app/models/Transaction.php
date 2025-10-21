@@ -328,28 +328,43 @@ class Transaction {
     }
     
     // Get transaction statistics for dashboard
-    public function getTransactionStats() {
-        $stats = [];
-        
-        // Today's transactions
-        $this->db->query('SELECT COUNT(*) as count, SUM(amount_paid) as total FROM account_general_transaction_new WHERE DATE(posting_time) = CURDATE() AND approval_status = "Approved"');
-        $stats['today'] = $this->db->single();
-        
-        // This week's transactions
-        $this->db->query('SELECT COUNT(*) as count, SUM(amount_paid) as total FROM account_general_transaction_new WHERE YEARWEEK(posting_time, 1) = YEARWEEK(CURDATE(), 1) AND approval_status = "Approved"');
-        $stats['week'] = $this->db->single();
-        
-        // This month's transactions
-        $this->db->query('SELECT COUNT(*) as count, SUM(amount_paid) as total FROM account_general_transaction_new WHERE YEAR(posting_time) = YEAR(CURDATE()) AND MONTH(posting_time) = MONTH(CURDATE()) AND approval_status = "Approved"');
-        $stats['month'] = $this->db->single();
-        
-        // Income line breakdown (this month)
-        $this->db->query('SELECT income_line, COUNT(*) as count, SUM(amount_paid) as total FROM account_general_transaction_new WHERE YEAR(posting_time) = YEAR(CURDATE()) AND MONTH(posting_time) = MONTH(CURDATE()) AND approval_status = "Approved" GROUP BY income_line');
-        $stats['income_lines'] = $this->db->resultSet();
+  public function getTransactionStats() {
+    // 1. Instantiate the new Standalone Cache Class
+    // Ensure FileCacheAccount class is loaded/available.
+    $cache = new FileCacheAccount(); 
+    
+    // 2. Generate the dynamic cache key
+    $cache_key_filename = FileCacheAccount::generateAccountStatsKey();
+    
+    // 3. Check the cache
+    $cached_data = $cache->get($cache_key_filename);
 
-        return $stats;
+    if ($cached_data) {
+        return $cached_data; // Returns instantly if cache is less than 5 minutes old
     }
 
+    // --- Cache Miss: Execute DB queries ---
+    
+    $stats = [];
+    
+    // Queries...
+    $this->db->query('SELECT COUNT(*) as count, SUM(amount_paid) as total FROM account_general_transaction_new WHERE DATE(posting_time) = CURDATE() AND approval_status = "Approved"');
+    $stats['today'] = $this->db->single();
+    
+    $this->db->query('SELECT COUNT(*) as count, SUM(amount_paid) as total FROM account_general_transaction_new WHERE YEARWEEK(posting_time, 1) = YEARWEEK(CURDATE(), 1) AND approval_status = "Approved"');
+    $stats['week'] = $this->db->single();
+    
+    $this->db->query('SELECT COUNT(*) as count, SUM(amount_paid) as total FROM account_general_transaction_new WHERE YEAR(posting_time) = YEAR(CURDATE()) AND MONTH(posting_time) = MONTH(CURDATE()) AND approval_status = "Approved"');
+    $stats['month'] = $this->db->single();
+    
+    $this->db->query('SELECT income_line, COUNT(*) as count, SUM(amount_paid) as total FROM account_general_transaction_new WHERE YEAR(posting_time) = YEAR(CURDATE()) AND MONTH(posting_time) = MONTH(CURDATE()) AND approval_status = "Approved" GROUP BY income_line');
+    $stats['income_lines'] = $this->db->resultSet();
+
+    // 4. Cache the result for 5 minutes
+    $cache->set($cache_key_filename, $stats); 
+
+    return $stats;
+}
     // Add unposted transaction
     public function addUnpostedTransaction($data) {
         $this->db->query('INSERT INTO unposted_transactions (

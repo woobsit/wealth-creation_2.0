@@ -351,98 +351,124 @@ class OfficerTargetManager {
         return $this->db->resultSet();
     }
     
-    public function getOfficerPerformanceSummary($officer_id, $month, $year) {
-        $this->db->query("
-            SELECT 
-                opt.officer_name,
-                opt.department,
-                COUNT(opt.id) as assigned_lines,
-                SUM(opt.monthly_target) as total_target,
-                SUM(COALESCE(actual_data.achieved_amount, 0)) as total_achieved,
-                AVG(CASE 
-                    WHEN opt.monthly_target > 0 THEN 
-                        (COALESCE(actual_data.achieved_amount, 0) / opt.monthly_target) * 100
-                    ELSE 0
-                END) as avg_achievement_percentage,
-                AVG(CASE 
-                    WHEN opt.monthly_target = 0 THEN 0
-                    WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.5 THEN 100.00
-                    WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.2 THEN 90.00
-                    WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target THEN 80.00
-                    WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.8 THEN 70.00
-                    WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.6 THEN 60.00
-                    WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.4 THEN 50.00
-                    WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.2 THEN 40.00
-                    ELSE 30.00
-                END) as avg_score,
-                COUNT(CASE 
-                    WHEN (CASE 
-                        WHEN opt.monthly_target = 0 THEN 'F'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.5 THEN 'A+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.2 THEN 'A'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target THEN 'B+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.8 THEN 'B'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.6 THEN 'C+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.4 THEN 'C'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.2 THEN 'D'
-                        ELSE 'F'
-                    END) IN ('A+', 'A') THEN 1 
-                END) as excellent_count,
-                COUNT(CASE 
-                    WHEN (CASE 
-                        WHEN opt.monthly_target = 0 THEN 'F'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.5 THEN 'A+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.2 THEN 'A'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target THEN 'B+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.8 THEN 'B'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.6 THEN 'C+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.4 THEN 'C'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.2 THEN 'D'
-                        ELSE 'F'
-                    END) IN ('B+', 'B') THEN 1 
-                END) as good_count,
-                COUNT(CASE 
-                    WHEN (CASE 
-                        WHEN opt.monthly_target = 0 THEN 'F'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.5 THEN 'A+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.2 THEN 'A'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target THEN 'B+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.8 THEN 'B'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.6 THEN 'C+'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.4 THEN 'C'
-                        WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.2 THEN 'D'
-                        ELSE 'F'
-                    END) IN ('C+', 'C', 'D', 'F') THEN 1 
-                END) as poor_count
-            FROM officer_monthly_targets opt
-            LEFT JOIN (
-                SELECT 
-                    t.remitting_id,
-                    t.credit_account,
-                    SUM(t.amount_paid) as achieved_amount,
-                    COUNT(DISTINCT t.date_of_payment) as working_days,
-                    COUNT(t.id) as total_transactions
-                FROM account_general_transaction_new t
-                WHERE MONTH(t.date_of_payment) = :month 
-                AND YEAR(t.date_of_payment) = :year
-                AND (t.approval_status = 'Approved' OR t.approval_status = '')
-                GROUP BY t.remitting_id, t.credit_account
-            ) actual_data ON opt.officer_id = actual_data.remitting_id 
-                AND opt.acct_id = actual_data.credit_account
-            WHERE opt.officer_id = :officer_id
-            AND opt.target_month = :month 
-            AND opt.target_year = :year
-            AND opt.status = 'Active'
-            GROUP BY opt.officer_id, opt.officer_name, opt.department
-        ");
-        
-        $this->db->bind(':officer_id', $officer_id);
-        $this->db->bind(':month', $month);
-        $this->db->bind(':year', $year);
-        
-        return $this->db->single();
-    }
+  // Note: You must ensure the FileCacheWealthCreation class is defined and available (e.g., loaded via require/include).
+// Make sure your web server has write permission to the cache directory (e.g., './cache/').
+
+public function getOfficerPerformanceSummary($officer_id, $month, $year) {
+    // Instantiate the FileCacheWealthCreation class
+    $cache = new FileCacheWealthCreation(); 
     
+    // 1. Generate a unique cache key
+    // We append '_summary' to distinguish it from the single-number rating cache.
+    $cache_key_filename = FileCacheWealthCreation::generateKey($officer_id, $month, $year) . '_summary';
+    
+    // 2. Check the cache
+    $cached_data = $cache->get($cache_key_filename);
+
+    if ($cached_data) {
+        // Cache Hit: Return the stored array instantly
+        return $cached_data; 
+    }
+
+    // --- Cache Miss: Execute the slow DB query ---
+    
+    $this->db->query("
+        SELECT 
+            opt.officer_name,
+            opt.department,
+            COUNT(opt.id) as assigned_lines,
+            SUM(opt.monthly_target) as total_target,
+            SUM(COALESCE(actual_data.achieved_amount, 0)) as total_achieved,
+            
+            AVG(CASE 
+                WHEN opt.monthly_target > 0 THEN 
+                    (COALESCE(actual_data.achieved_amount, 0) / opt.monthly_target) * 100
+                ELSE 0
+            END) as avg_achievement_percentage,
+            
+            AVG(CASE 
+                WHEN opt.monthly_target = 0 THEN 0
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.5 THEN 100.00
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.2 THEN 90.00
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target THEN 80.00
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.8 THEN 70.00
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.6 THEN 60.00
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.4 THEN 50.00
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.2 THEN 40.00
+                ELSE 30.00
+            END) as avg_score,
+            
+            COUNT(CASE WHEN (CASE 
+                WHEN opt.monthly_target = 0 THEN 'F'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.5 THEN 'A+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.2 THEN 'A'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target THEN 'B+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.8 THEN 'B'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.6 THEN 'C+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.4 THEN 'C'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.2 THEN 'D'
+                ELSE 'F'
+            END) IN ('A+', 'A') THEN 1 END) as excellent_count,
+            
+            COUNT(CASE WHEN (CASE 
+                WHEN opt.monthly_target = 0 THEN 'F'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.5 THEN 'A+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.2 THEN 'A'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target THEN 'B+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.8 THEN 'B'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.6 THEN 'C+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.4 THEN 'C'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.2 THEN 'D'
+                ELSE 'F'
+            END) IN ('B+', 'B') THEN 1 END) as good_count,
+            
+            COUNT(CASE WHEN (CASE 
+                WHEN opt.monthly_target = 0 THEN 'F'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.5 THEN 'A+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 1.2 THEN 'A'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target THEN 'B+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.8 THEN 'B'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.6 THEN 'C+'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.4 THEN 'C'
+                WHEN COALESCE(actual_data.achieved_amount, 0) >= opt.monthly_target * 0.2 THEN 'D'
+                ELSE 'F'
+            END) IN ('C+', 'C', 'D', 'F') THEN 1 END) as poor_count
+        
+        FROM officer_monthly_targets opt
+        LEFT JOIN (
+            SELECT 
+                t.remitting_id,
+                t.credit_account,
+                SUM(t.amount_paid) as achieved_amount,
+                COUNT(DISTINCT t.date_of_payment) as working_days,
+                COUNT(t.id) as total_transactions
+            FROM account_general_transaction_new t
+            WHERE MONTH(t.date_of_payment) = :month 
+            AND YEAR(t.date_of_payment) = :year
+            AND (t.approval_status = 'Approved' OR t.approval_status = '')
+            GROUP BY t.remitting_id, t.credit_account
+        ) actual_data ON opt.officer_id = actual_data.remitting_id 
+            AND opt.acct_id = actual_data.credit_account
+        WHERE opt.officer_id = :officer_id
+        AND opt.target_month = :month 
+        AND opt.target_year = :year
+        AND opt.status = 'Active'
+        GROUP BY opt.officer_id, opt.officer_name, opt.department
+    ");
+    
+    // Bind parameters for the query
+    $this->db->bind(':officer_id', $officer_id);
+    $this->db->bind(':month', $month);
+    $this->db->bind(':year', $year);
+    
+    // Execute the query
+    $result = $this->db->single();
+    
+    // 3. Cache the result before returning
+    $cache->set($cache_key_filename, $result);
+    
+    return $result;
+}
     /**
      * Get detailed officer performance by income line
      */

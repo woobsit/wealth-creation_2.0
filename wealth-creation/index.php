@@ -7,7 +7,8 @@ require __DIR__.'/../app/models/OfficerPerformanceAnalyzer.php';
 require __DIR__.'/../app/models/OfficerTargetManager.php';
 require __DIR__.'/../app/models/PaymentProcessor.php';
 require __DIR__.'/../app/models/Remittance.php';
-require __DIR__.'/../app/models/FileCache.php';
+require __DIR__.'/../app/models/FileCacheWealthCreation.php';
+require __DIR__.'/../app/models/FileCacheAccount.php';
 
 // Check if user is already logged in
 requireLogin();
@@ -32,6 +33,7 @@ $month_name = date('F');
 // Account officers
 if ($_SESSION['department'] == "Accounts") {
     $stats = $transaction->getTransactionStats();
+    
     $pendingTransactions = [];
     $pendingTransactions = $transaction->getPendingTransactionsForAccountApproval();
     $accountOfficerTotalTillbalance = $transaction->totalTillAccounts($user_id);
@@ -53,11 +55,17 @@ if ($_SESSION['department'] == "Wealth Creation") {
     // Get officer's performance data
     //$officer_info = $analyzer->getOfficerInfo($user_id, false);
     $officer_targets = $target_manager->getOfficerTargets($user_id, $current_month, $current_year);
+    
     $performance_summary = $target_manager->getOfficerPerformanceSummary($user_id, $current_month, $current_year);
+    
     $daily_performance = $analyzer->getOfficerDailyPerformance($user_id, $current_month, $current_year, false);
+    
     $efficiency_metrics = $analyzer->getOfficerEfficiencyMetrics($user_id, $current_month, $current_year, false);
+    
     $rating = $analyzer->getOfficerRating($user_id, $current_month, $current_year, false);
+   
     $trends = $analyzer->getOfficerTrends($user_id, $current_month, $current_year, false);
+    
     // Get remittance balance
     $remittances = $remittancemanager->getRemittancesByDate($current_date);
     $remittance_data = $remittancemanager->getofficerAllRemittanceBalance($user_id, $current_date);//Get remitance summary for offcers
@@ -80,6 +88,7 @@ if ($_SESSION['department'] == "Wealth Creation") {
 
     //Sunday position for chart
     $sundays = $analyzer->getSundayPositions($current_month, $current_year);
+    
     // Calculate achievement levels and awards
     $achievement_level = 'Bronze';
     $achievement_icon = 'fa-medal';

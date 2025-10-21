@@ -30,28 +30,6 @@ class User {
         }
     }
     
-    // Login user
-    // public function login($email, $password) {
-    //     // Prepare query
-    //     $this->db->query('SELECT * FROM _users WHERE email = :email AND status = "active"');
-        
-    //     // Bind value
-    //     $this->db->bind(':email', $email);
-        
-    //     // Get single record
-    //     $user = $this->db->single();
-        
-    //     if($user) {
-    //         // Verify password
-    //         $hashed_password = $user['password'];
-    //         if ($password = hash('sha256', $hashed_password)) {
-    //             //if(password_verify($password, $hashed_password)) {
-    //             return $user;
-    //         }
-    //     }
-        
-    //     return false;
-    // }
 
     public function login($email, $password) {
         $this->db->query('SELECT * FROM _users WHERE email = :email AND status = "active"');
@@ -69,12 +47,23 @@ class User {
 
             // Fallback for legacy SHA-256 users ---
             if (hash('sha256', $password) == $hashed_password) {
+                $new_hash = password_hash($password, PASSWORD_DEFAULT);
+                $this->updatePasswordHash($user['id'], $new_hash);
                 return $user; // Password matched legacy hash
             }
         }
 
         return false; 
     }
+
+    // Assuming $this->db is available for database operations
+public function updatePasswordHash($user_id, $new_hashed_password) {
+
+    $this->db->query('UPDATE _users SET password = :password_hash WHERE id = :user_id');
+    $this->db->bind(':password_hash', $new_hashed_password);
+    $this->db->bind(':user_id', $user_id);
+    return $this->db->execute();
+}
 
 
     public function loginwithrole($email, $password) {

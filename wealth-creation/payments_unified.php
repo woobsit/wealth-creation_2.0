@@ -9,6 +9,7 @@ require __DIR__.'/../app/models/OfficerTargetManager.php';
 require __DIR__.'/../app/models/PaymentProcessor.php';
 require __DIR__.'/../app/models/Remittance.php';
 require __DIR__.'/../app/models/FileCacheWealthCreation.php';
+require __DIR__.'/../app/models/FileCacheAccount.php';
 
 // Check if user is already logged in
 requireLogin();

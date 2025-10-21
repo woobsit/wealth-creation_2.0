@@ -1,7 +1,7 @@
 <?php
 class FileCacheWealthCreation {
-    private string $cache_dir = __DIR__ . '/../cache/';
-    private const DEFAULT_TTL = 3600; // 1 hour (Time To Live in seconds)
+    private $cache_dir = __DIR__ . '/../cache/';
+    const DEFAULT_TTL = 3600; // 1 hour (Time To Live in seconds)
 
     public function __construct($custom_dir = '') {
         if (!empty($custom_dir)) {

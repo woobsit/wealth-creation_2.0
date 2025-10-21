@@ -215,7 +215,7 @@ requireLogin();
                 <span class="text-xs font-medium text-gray-500">Personnel & Benefits</span>
             </a>
 
-            <a href="#"
+            <a href="payment-requisition-system"
                 class="flex flex-col items-center justify-center w-48 h-32 bg-secondary-50 text-secondary-700 border-2 border-secondary-300 rounded-xl hover:bg-secondary-100 transition duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.05] group">
                 <svg class="w-8 h-8 mb-2 group-hover:text-secondary-800 transition-colors" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">

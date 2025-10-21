@@ -26,7 +26,7 @@ $stats = $transaction->getTransactionStats();
 $currentUser = $user->getUserById($userId);
 $currentUserStaffInfo = $user->getUserStaffDetail($userId);
 $currentUserAdminRole = $user->getUserAdminRole($userId);
-//Array ( [id] => 61 [user_level] => 0 [full_name] => Aanu ELEMIDE [password] => 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8 [email] => aanu.elemide@thearenamarket.com [has_roles] => [status] => active ) 
+//Array ( [id] => 61 [level] => 0 [full_name] => Aanu ELEMIDE [password] => 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8 [email] => aanu.elemide@thearenamarket.com [has_roles] => [status] => active ) 
 $myTotalremittances = $remittance->getTotalRemittancesForOfficer($userId);
 //$myCashRemittance = $remittance->getTotalCashRemitanceForOfficer($userId);
 ?>

@@ -1,12 +1,16 @@
 <?php
-require_once 'Database.php';
+// require_once 'Database.php';
 
 class TransactionManager {
     private $db;
 
-    public function __construct($db = null) {
-        $this->db = $db !== null ? $db : new Database();
+    public function __construct($databaseObj) {
+        $this->db = $databaseObj;
     }
+    
+    // public function __construct($db = null) {
+    //     $this->db = $db !== null ? $db : new Database();
+    // }
 
     /**
      * Calculate unposted balance for an officer

@@ -400,6 +400,62 @@ $summary = $remittancemanager->getRemittanceSummary($current_date);
                 window.location.href = 'account_remittance.php?delete_id=' + id;
             }
         }
+
+        // **JAVASCRIPT FOR DROPDOWN FUNCTIONALITY**
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            if (dropdown) {
+                
+                // 1. Close all currently visible dropdowns
+                // We now select ALL elements with the new 'dropdown-menu' class.
+                document.querySelectorAll('.dropdown-menu').forEach(otherDropdown => {
+                    if (otherDropdown.id !== id) {
+                        otherDropdown.classList.add('hidden');
+                    }
+                });
+
+                // 2. Toggle the clicked one's visibility
+                dropdown.classList.toggle('hidden');
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            // We update the selector here too, to check if the click is outside 
+            // any button or any element with the 'dropdown-menu' class.
+            if (!event.target.closest('.relative button') && !event.target.closest('.dropdown-menu')) {
+                document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
+                    dropdown.classList.add('hidden');
+                });
+            }
+        });
+
+    // **JAVASCRIPT FOR DATATABLES**
+    $(document).ready(function() {
+        $('#activityTable').DataTable({
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "pageLength": 5, // Show 5 entries by default
+            "language": {
+                "lengthMenu": "Show _MENU_ entries",
+                "search": "Filter records:",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "Showing 0 to 0 of 0 entries",
+                "infoFiltered": "(filtered from _MAX_ total entries)",
+                "zeroRecords": "No matching records found"
+            },
+            // Add Bootstrap styling classes (often needed for DataTables styling integration)
+            "dom": 'lfrtip' 
+        });
+        
+        // This is a common fix to make DataTables pagination buttons and search/length dropdowns visible 
+        // when using a theme like Tailwind.
+        $('.dataTables_wrapper').addClass('mt-4');
+        $('.dataTables_length').addClass('mb-2');
+        $('.dataTables_filter').addClass('mb-2');
+    });
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>

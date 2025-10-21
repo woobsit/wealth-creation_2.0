@@ -119,41 +119,6 @@ if ($_SESSION['department'] == "Wealth Creation") {
 // Handle form submissions
 $message = '';
 $error = '';
-// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-//     if (isset($_POST['btn_post'])) {
-//         //Array ( [posting_officer_id] => 191 [posting_officer_name] => Bamikole FATIMEHIN [date_of_payment] => 16/10/2025 [officer] => 53 [officer_name] => Blessing UKPAI [amount_paid] => 20000 [confirm_amount_paid] => 20000 [no_of_receipts] => 2 [category] => Service Charge [btn_post] => ) 
-        
-//         // Validate amounts match
-//         if ($_POST['amount_paid'] !== $_POST['confirm_amount_paid']) {
-//             $error = 'Amount and confirmation amount do not match!';
-//         } else {
-//             $date_parts = explode('/', $_POST['date_of_payment']);
-//             $formatted_date = $date_parts[2] . '-' . $date_parts[1] . '-' . $date_parts[0];
-            
-//             $remittance_data = [
-//                 'officer_id' => $_POST['officer'],
-//                 'officer_name' => $_POST['officer_name'],
-//                 'date' => $formatted_date,
-//                 'amount_paid' => preg_replace('/[,]/', '', $_POST['amount_paid']),
-//                 'no_of_receipts' => $_POST['no_of_receipts'],
-//                 'category' => $_POST['category'],
-//                 'posting_officer_id' => $_POST['posting_officer_id'],
-//                 'posting_officer_name' => $_POST['posting_officer_name']
-//             ];
-            
-//             $result = $remittancemanager->processRemittance($remittance_data);
-            
-//             if ($result['success']) {
-//                 $message = $result['message'];
-//                 // Redirect to prevent resubmission
-//                 header('Location: account_remittance.php?success=1');
-//                 exit;
-//             } else {
-//                 $error = $result['message'];
-//             }
-//         }
-//     }
-// }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -168,8 +133,7 @@ $error = '';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" />
-    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" /> 
     <script>
         tailwind.config = {
             theme: {
@@ -401,8 +365,47 @@ $error = '';
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <!-- Cash Remittance Form -->
             <?php if ($_SESSION['department'] === 'Accounts'): ?>
-            <div class="lg:col-span-1">
-                
+            <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center mb-4">
+                    <div class="bg-yellow-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-balance-scale text-yellow-600 text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-900">General Ledger</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-1 gap-3">
+                    <a href="ledger/ledger.php" target="_blank" class="flex items-center p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group">
+                        <div class="p-2 bg-green-600 rounded-lg mr-3 group-hover:bg-green-700 transition-colors">
+                            <i class="fas fa-balance-scale text-white"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900"> General Ledger </div>
+                            <div class="text-xs text-gray-500">View Revenue Report </div>
+                        </div>
+                    </a>
+
+                    <a href="#" target="_blank" class="flex items-center p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors group">
+                        <div class="p-2 bg-purple-600 rounded-lg mr-3 group-hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-book-open text-white"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900"> Trial Balance </div>
+                            <div class="text-xs text-gray-500">Click to open Trial Balance </div>
+                        </div>
+                    </a>
+
+                     <!-- Corrected Records Summary -->
+                    <div class="bg-yellow-100 card-hover border border-orange-100 transition-all duration-200 rounded-md shadow p-3 text-xs">
+                        <h2 class="text-base font-semibold text-yellow-800 mb-1">Corrected Records</h2>
+                        <div class="space-y-0.5 text-gray-800">
+                        <p><strong class="text-red-600">Total:</strong> <?= $correctedSummary['total'] ?> record(s)</p>
+                        <p><strong class="text-green-600">HOD Approved:</strong> <?= $correctedSummary['awaiting_audit'] ?> awaiting Audit verification</p>
+                        <p><strong class="text-blue-600">Approved/Declined:</strong> <?= $correctedSummary['fully_approved_or_declined'] ?> record(s)</p>
+                        <p><strong class="text-red-500">Declined by Audit:</strong> <?= $correctedSummary['declined_by_audit'] ?></p>
+                        <a href="mod/leasing/corrected_records.php" class="inline-block mt-1 text-blue-700 underline">View All</a>
+                        </div>
+                    </div>
+                </div> 
+       
             </div>
 
             <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
@@ -419,24 +422,13 @@ $error = '';
                             <span class="font-medium text-gray-900">Account Remittance</span>
                         </div>
                     </a>
-                    <a href="post_payments.php" class="card-hover block bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 transition-all duration-200">
+
+                    <a href="payments_unified.php" class="card-hover block bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 transition-all duration-200">
                         <div class="flex items-center">
                             <i class="fas fa-receipt text-yellow-600 mr-3"></i>
                             <span class="font-medium text-gray-900">Post Payments</span>
                         </div>
                     </a> 
-                    
-                    <!-- Corrected Records Summary -->
-                    <div class="bg-yellow-100 card-hover border border-orange-100 transition-all duration-200 rounded-md shadow p-3 text-xs">
-                        <h2 class="text-base font-semibold text-yellow-800 mb-1">Corrected Records</h2>
-                        <div class="space-y-0.5 text-gray-800">
-                        <p><strong class="text-red-600">Total:</strong> <?= $correctedSummary['total'] ?> record(s)</p>
-                        <p><strong class="text-green-600">HOD Approved:</strong> <?= $correctedSummary['awaiting_audit'] ?> awaiting Audit verification</p>
-                        <p><strong class="text-blue-600">Approved/Declined:</strong> <?= $correctedSummary['fully_approved_or_declined'] ?> record(s)</p>
-                        <p><strong class="text-red-500">Declined by Audit:</strong> <?= $correctedSummary['declined_by_audit'] ?></p>
-                        <a href="mod/leasing/corrected_records.php" class="inline-block mt-1 text-blue-700 underline">View All</a>
-                        </div>
-                    </div>
 
                     <div class="bg-green-100 card-hover transition-all duration-200 rounded-md shadow p-3 text-xs">
                     <h2 class="text-base font-semibold text-green-800 mb-1">Shop Renewal</h2>
@@ -460,7 +452,7 @@ $error = '';
                     <div class="p-2 bg-green-100 rounded-lg mr-3">
                         <i class="fas fa-chart-line text-green-600 text-xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900">MPR & Revenue Report Analysis</h3>
+                    <h2 class="text-lg font-semibold text-gray-900">MPR & Revenue Report Analysis</h2>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-1 gap-3">
@@ -485,15 +477,7 @@ $error = '';
                     </a>
 
                     
-                    <a href="ledger/ledger.php" target="_blank" class="flex items-center p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group">
-                        <div class="p-2 bg-green-600 rounded-lg mr-3 group-hover:bg-green-700 transition-colors">
-                            <i class="fas fa-balance-scale text-white"></i>
-                        </div>
-                        <div>
-                            <div class="text-sm font-medium text-gray-900"> General Ledger </div>
-                            <div class="text-xs text-gray-500">View Revenue Report </div>
-                        </div>
-                    </a>
+                    
 
                     <!-- Expected Adjustment Summary -->
                     <div class="bg-cyan-100 card-hover transition-all duration-200 rounded-md shadow p-3 text-xs shadow p-4">
@@ -762,7 +746,7 @@ $error = '';
                     </div>
                     
                      <div class="space-y-3">
-                        <a href="post_payments.php" class="card-hover block bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 transition-all duration-200">
+                        <a href="payments_unified.php" class="card-hover block bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 transition-all duration-200">
                             <div class="flex items-center">
                                 <i class="fas fa-receipt text-yellow-600 mr-3"></i>
                                 <span class="font-medium text-gray-900">Post Payments</span>

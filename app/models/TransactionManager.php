@@ -40,7 +40,14 @@ class TransactionManager {
         $this->db->bind(':current_date', $current_date);
         $remitted = $this->db->single();
 
-        return $remitted['amount_remitted'] - $posted['amount_posted'];
+        //return $remitted['amount_remitted'] - $posted['amount_posted'];
+        return [
+            'amount_posted' => $posted['amount_posted'],
+            'amount_remitted' => $remitted['amount_remitted'],
+            'unposted' => $remitted['amount_remitted'] - $posted['amount_posted'],
+            'remit_id' => isset($remitted['remit_id']) ? $remitted['remit_id'] : '',
+            'date' => isset($remitted['date']) ? $remitted['date'] : ''
+        ];
     }
     
     /**

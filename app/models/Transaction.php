@@ -775,7 +775,7 @@ class Transaction {
         return $declinedPosts;
     }
 
-     public function calculateUnpostedBalance($officer_id, $current_date, $category = 'Other Collection') {
+    public function calculateUnpostedBalance($officer_id, $current_date, $category = 'Other Collection') {
         $this->db->query("
             SELECT COALESCE(SUM(amount_paid), 0) as amount_posted
             FROM account_general_transaction_new
@@ -800,7 +800,48 @@ class Transaction {
         $this->db->bind(':current_date', $current_date);
         $remitted = $this->db->single();
 
-        return $remitted['amount_remitted'] - $posted['amount_posted'];
+        //return $remitted['amount_remitted'] - $posted['amount_posted'];
+        return [
+            'amount_posted' => $posted['amount_posted'],
+            'amount_remitted' => $remitted['amount_remitted'],
+            'unposted' => $remitted['amount_remitted'] - $posted['amount_posted'],
+            'remit_id' => isset($remitted['remit_id']) ? $remitted['remit_id'] : '',
+            'date' => isset($remitted['date']) ? $remitted['date'] : ''
+        ];
+    }
+    
+    public function getRemittanceBalance($posting_officer_id, $current_date) {
+        // Get amount posted today
+        $this->db->query("
+            SELECT COALESCE(SUM(amount_paid), 0) as amount_posted 
+            FROM account_general_transaction_new 
+            WHERE posting_officer_id = :officer_id 
+            AND payment_category = 'Other Collection' 
+            AND date_of_payment = :current_date
+        ");
+        $this->db->bind(':officer_id', $posting_officer_id);
+        $this->db->bind(':current_date', $current_date);
+        $posted = $this->db->single();
+        
+        // Get amount remitted today
+        $this->db->query("
+            SELECT COALESCE(SUM(amount_paid), 0) as amount_remitted, remit_id, date
+            FROM cash_remittance 
+            WHERE remitting_officer_id = :officer_id 
+            AND category = 'Other Collection' 
+            AND date = :current_date
+        ");
+        $this->db->bind(':officer_id', $posting_officer_id);
+        $this->db->bind(':current_date', $current_date);
+        $remitted = $this->db->single();
+        
+        return [
+            'amount_posted' => $posted['amount_posted'],
+            'amount_remitted' => $remitted['amount_remitted'],
+            'unposted' => $remitted['amount_remitted'] - $posted['amount_posted'],
+            'remit_id' => isset($remitted['remit_id']) ? $remitted['remit_id'] : '',
+            'date' => isset($remitted['date']) ? $remitted['date'] : ''
+        ];
     }
     
     /**

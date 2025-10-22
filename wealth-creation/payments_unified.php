@@ -19,6 +19,7 @@ $db = $databaseObj;
 $paymentProcessor = new PaymentProcessor($databaseObj);
 $transactionManager = new Transaction($databaseObj);
 $user = new User($databaseObj);
+$staff = $user->getUserStaffDetail($user_id);
 
 $current_date = date('Y-m-d');
 $errors = [];
@@ -39,17 +40,19 @@ $income_lines = $db->resultSet();
 $db->query("SELECT * FROM accounts WHERE active = 'Yes' ORDER BY acct_desc ASC");
 $all_accounts = $db->resultSet();
 
-// $db->query("SELECT * FROM staffs WHERE active = 'Yes' ORDER BY full_name ASC");
-// $staff_list = $db->resultSet();
+// Get staff lists for dropdowns
+$wc_staff = $paymentProcessor->getStaffList('Wealth Creation');
+$other_staff = $paymentProcessor->getOtherStaffList();
 
-$current_remittance_balance = 0;
+$current_remittance_balance = [];
 $selected_income_line = isset($_GET['income_line']) ? $_GET['income_line'] : '';
 
+// $credit_legs = $processor->getIncomeLineAccounts();
+
 if ($posting_officer_dept == "Wealth Creation") {
-    $current_remittance_balance = $transactionManager->calculateUnpostedBalance(
+    $current_remittance_balance = $transactionManager->getRemittanceBalance(
         $posting_officer_id,
-        $current_date,
-        'Other Collection'
+        $current_date
     );
 }
 
@@ -62,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction']
             'remitting_staff'       => isset($_POST['remitting_staff']) ? $_POST['remitting_staff'] : '',
             'transaction_desc'      => isset($_POST['transaction_descr']) ? $_POST['transaction_descr'] : '',
             'debit_account'         => isset($_POST['debit_account']) ? $_POST['debit_account'] : '',
-            'credit_account'        => isset($_POST['credit_account']) ? $_POST['credit_account'] : '',
+            'credit_account'        => isset($_POST['credit_account']) ? $_POST['credit_account'] : $_POST['credit_account_wc'],
             'income_line'           => isset($_POST['income_line']) ? $_POST['income_line'] : '',
             'income_line_type'      => isset($_POST['income_line_type']) ? $_POST['income_line_type'] : '',
             'posting_officer_id'    => $posting_officer_id,
@@ -81,7 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction']
             'type'                  => isset($_POST['type']) ? $_POST['type'] : '',
             'board_name'            => isset($_POST['board_name']) ? $_POST['board_name'] : ''
         ];
-
+        // print_r($posting_data);
+        // exit;
         $validation = $paymentProcessor->validatePosting($posting_data);
 
         if (!$validation['valid']) {
@@ -111,13 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction']
 $db->query("SELECT * FROM scroll_boards ORDER BY board_location ASC");
 $scroll_boards = $db->resultSet();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Payment Posting - All Income Lines</title>
+    <title>New Payment Posting - All Income Lines</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -131,13 +134,13 @@ $scroll_boards = $db->resultSet();
         <?php if ($posting_officer_dept == "Wealth Creation"): ?>
             <div class="relative z-40 mt-4 flex justify-center">
                 <div class="w-fit max-w-xl px-6 py-3 rounded-xl border 
-                    <?php echo $current_remittance_balance > 0 
+                    <?php echo $current_remittance_balance['unposted'] > 0 
                         ? 'bg-red-50 border-red-300 text-red-800' 
                         : 'bg-emerald-50 border-emerald-300 text-emerald-800'; ?> 
                     shadow-sm font-semibold text-center tracking-wide transition-all duration-300">
                     
                     <div class="flex items-center justify-center space-x-2">
-                        <?php if ($current_remittance_balance > 0): ?>
+                        <?php if ($current_remittance_balance['unposted'] > 0): ?>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                     d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -148,12 +151,12 @@ $scroll_boards = $db->resultSet();
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                     d="M5 13l4 4L19 7" />
                             </svg>
-                            <span>✓ BALANCED</span>
+                            <span>100% BALANCED</span>
                         <?php endif; ?>
                     </div>
 
                     <div class="mt-1 text-sm font-medium opacity-90">
-                        TILL BALANCE: &#8358;<?php echo number_format($current_remittance_balance, 2); ?>
+                        TILL BALANCE: &#8358;<?php echo number_format($current_remittance_balance['unposted'], 2); ?>
                     </div>
                 </div>
             </div>
@@ -187,14 +190,14 @@ $scroll_boards = $db->resultSet();
         <!-- Split Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Side - Income Lines -->
-            <aside class="lg:col-span-1 bg-white rounded-xl shadow-md p-5 border border-gray-100">
+            <aside class="lg:col-span-1 bg-white rounded-xl shadow-md p-5 border border-gray-100 items-start">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="fa-solid fa-wallet text-blue-600 mr-2"></i> Income Lines
                 </h3>
                 <div id="income-line-cards" class="flex flex-col gap-3">
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="car_park" onclick="selectIncomeLine('car_park')">
                         <div>
-                            <h4 class="text-sm font-bold">Car Park</h4>
+                            <h5 class="text-sm font-bold">Car Park</h5>
                             <p class="text-xs opacity-90">Parking Tickets</p>
                         </div>
                         <i class="fa fa-car text-lg opacity-90"></i>
@@ -202,57 +205,57 @@ $scroll_boards = $db->resultSet();
 
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="loading" onclick="selectIncomeLine('loading')">
                         <div>
-                            <h4 class="text-sm font-bold">Loading & Offloading</h4>
-                            <p class="text-xs opacity-90">Cargo Services</p>
+                            <h5 class="text-sm font-bold">Loading & Offloading</h5>
+                            <p class="text-xs opacity-90">Offloading of Trucks</p>
                         </div>
                         <i class="fa fa-truck text-lg opacity-90"></i>
                     </div>
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="daily_trade" onclick="selectIncomeLine('daily_trade')">
                         <div>
-                            <h4 class="text-sm font-bold">Daily Trade</h4>
-                            <p class="text-xs opacity-90">Daily Permits</p>
+                            <h5 class="text-sm font-bold">Daily Trade</h5>
+                            <p class="text-xs opacity-90">Everyday Trade</p>
                         </div>
                         <i class="fa fa-store text-lg opacity-90"></i>
                     </div>
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="hawkers" onclick="selectIncomeLine('hawkers')">
                         <div>
-                            <h4 class="text-lg font-bold mb-1">Hawkers</h4>
-                            <p class="text-sm">Hawker Permits</p>
+                            <h5 class="text-sm font-bold">Hawkers</h5>
+                            <p class="text-xs">Hawker Selling Permits</p>
                         </div>
                         <i class="fa fa-person-walking text-lg opacity-90"></i>
                     </div>
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="wheelbarrow" onclick="selectIncomeLine('wheelbarrow')">
                         <div>
-                            <h4 class="text-lg font-bold mb-1">Wheelbarrow</h4>
-                            <p class="text-sm">Wheelbarrow Permits</p>
+                            <h5 class="text-sm font-bold">Wheelbarrow</h5>
+                            <p class="text-xs">Wheelbarrow pushers</p>
                         </div>
                         <i class="fa fa-wheelchair text-lg opacity-90"></i>
                     </div>
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="abattoir" onclick="selectIncomeLine('abattoir')">
                         <div>
-                            <h4 class="text-lg font-bold mb-1">Abattoir</h4>
-                            <p class="text-sm">Slaughter Charges</p>
+                            <h5 class="text-sm font-bold">Abattoir</h5>
+                            <p class="text-xs">Slaughter Charges</p>
                         </div>
                         <i class="fa fa-drumstick-bite text-lg opacity-90"></i>
                     </div>
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="overnight_parking" onclick="selectIncomeLine('overnight_parking')">
                         <div>
-                            <h4 class="text-lg font-bold mb-1">Overnight Parking</h4>
-                            <p class="text-sm">Long-term Parking</p>
+                            <h5 class="text-sm font-bold">Overnight Parking</h5>
+                            <p class="text-xs">Long-term Parking</p>
                         </div>
                         <i class="fa fa-parking text-lg opacity-90"></i>
                     </div>
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="scroll_board" onclick="selectIncomeLine('scroll_board')">
                         <div>
-                            <h4 class="text-lg font-bold mb-1">Scroll Board</h4>
-                            <p class="text-sm">Advertising</p>
+                            <h5 class="text-sm font-bold">Scroll Board</h5>
+                            <p class="text-xs">Advertising</p>
                         </div>
                         <i class="fa fa-scroll text-lg opacity-90"></i>
                     </div>
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="general" onclick="selectIncomeLine('general')">
                         <div>
-                            <h4 class="text-lg font-bold mb-1">General/Other</h4>
-                            <p class="text-sm">Miscellaneous</p>
+                            <h5 class="text-sm font-bold mb-1">General/Other</h5>
+                            <p class="text-xs">Miscellaneous</p>
                         </div>
                         <i class="fa fa-sack-dollar text-lg opacity-90"></i>
                     </div>
@@ -262,135 +265,302 @@ $scroll_boards = $db->resultSet();
             <!-- Right Side - Forms -->
             <section class="lg:col-span-2 bg-white rounded-xl shadow-md p-6 border border-gray-100">
                 <form method="POST" action="" id="payment_form">
+                    <input type="hidden" name="posting_officer_name" value="<?php echo  $posting_officer_name; ?>">
                     <input type="hidden" name="income_line_type" id="income_line_type" value="">
                     <input type="hidden" name="posting_officer_dept" value="<?php echo $posting_officer_dept; ?>">
+                    <input type="hidden" name="posting_officer_id" value="<?php echo $posting_officer_id; ?>">
                     <?php if ($posting_officer_dept == "Wealth Creation"): ?>
-                        <input type="hidden" name="remit_id" value="">
-                        <input type="hidden" name="amt_remitted" value="<?php echo $current_remittance_balance; ?>">
+                        <input type="hidden" name="remit_id" value="<?php echo $current_remittance_balance['remit_id']; ?>">
+                        <input type="hidden" name="amt_remitted" value="<?php echo $current_remittance_balance['unposted']; ?>">
                     <?php endif; ?>
 
                     <!-- Common Fields Section -->
-                    <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="common_fields">
-                        <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">Transaction Details</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="mb-4">
-                                <label class="block mb-2 font-bold text-gray-800">Date of Payment <span class="text-red-600">*</span></label>
-                                <input type="date" name="date_of_payment" value="<?php echo $current_date; ?>" required class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                            </div>
-                            <div class="mb-4">
-                                <label class="block mb-2 font-bold text-gray-800">Receipt No <span class="text-red-600">*</span></label>
-                                <input type="text" name="receipt_no" placeholder="7-digit receipt number" pattern="^\d{7}$" maxlength="7" required class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                            </div>
+                    <div id="common_fields" class="common-inputs form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                    <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                        💳 Payment Details
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Date of Payment <span class="text-red-600">*</span>
+                            </label>
+                            <input type="date" name="date_of_payment" value="<?php echo $current_date; ?>" required class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                         </div>
 
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Remitting Staff <span class="text-red-600">*</span></label>
-                            <select name="remitting_staff" required class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                                <option value="">-- Select Staff --</option>
-                                <?php foreach ($staff_list as $staff): ?>
-                                    <option value="<?php echo $staff['user_id']; ?>-wc">
-                                        <?php echo htmlspecialchars($staff['full_name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Receipt No <span class="text-red-600">*</span>
+                            </label>
+                            <input type="text" name="receipt_no" placeholder="7-digit receipt number" pattern="^\d{7}$" maxlength="7" required class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="mb-4">
-                                <label class="block mb-2 font-bold text-gray-800">Debit Account <span class="text-red-600">*</span></label>
-                                <select name="debit_account" required class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                                    <option value="">-- Select Debit Account --</option>
-                                    <?php foreach ($all_accounts as $account): ?>
-                                        <option value="<?php echo $account['acct_id']; ?>">
-                                            <?php echo htmlspecialchars($account['acct_desc']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-4">
-                                <label class="block mb-2 font-bold text-gray-800">Credit Account (Income Line) <span class="text-red-600">*</span></label>
-                                <select name="credit_account" id="credit_account" required class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                                    <option value="">-- Select Income Line --</option>
-                                    <?php foreach ($income_lines as $account): ?>
-                                        <option value="<?php echo $account['acct_id']; ?>"
-                                                data-desc="<?php echo htmlspecialchars($account['acct_desc']); ?>">
-                                            <?php echo htmlspecialchars($account['acct_desc']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                        <input type="hidden" name="income_line" id="income_line">
                     </div>
 
+                    <!-- Conditional: Remittance -->
+                    <?php if ($posting_officer_dept == 'Wealth Creation' && $current_remittance_balance['unposted'] > 0): ?>
+                        <div class="mt-6">
+                        <label class="block mb-2 text-sm font-medium text-gray-700">Remittance</label>
+                        <select 
+                            name="remit_id" 
+                            required
+                            class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        >
+                            <option value="">Select...</option>
+                            <option value="<?php echo $current_remittance_balance['remit_id']; ?>">
+                            <?php echo $current_remittance_balance['date'] . ': Remittance - ₦' . number_format($current_remittance_balance['unposted']); ?>
+                            </option>
+                        </select>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Row 2: Remitting Staff -->
+                    <div class="mt-6">
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Remitter's Name <span class="text-red-600">*</span>
+                        </label>
+                        <select name="remitting_staff" required class="common-inputs w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">Select...</option>
+                            <?php foreach ($wc_staff as $staff_member): ?>
+                                <option value="<?php echo $staff_member['user_id']; ?>-wc">
+                                    <?php echo $staff_member['full_name']; ?>
+                                </option>
+                            <?php endforeach; ?>
+                            <?php foreach ($other_staff as $staff_member): ?>
+                                <option value="<?php echo $staff_member['id']; ?>-so">
+                                    <?php echo $staff_member['full_name'] . ' - ' . $staff_member['department']; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Row 3: Debit & Credit Accounts -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <?php if ($_SESSION['department'] == "Accounts") : ?>
+                        <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Debit Account <span class="text-red-600">*</span>
+                        </label>
+                        <select  name="debit_account"  required class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">-- Select Debit Account --</option>
+                            <option value="10103">Account Till</option> 
+                            <option value="10150">Wealth Creation Funds Account</option>
+                        </select>
+                        </div>
+                        
+
+                        <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Credit Account (Income Line) <span class="text-red-600">*</span>
+                        </label>
+                        <select 
+                            name="credit_account" 
+                            id="credit_account" 
+                            required 
+                            class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        >
+                            <option value="">-- Select Income Line --</option>
+                            <?php foreach ($income_lines as $account): ?>
+                            <option 
+                                value="<?php echo $account['acct_id']; ?>"
+                                data-desc="<?php echo htmlspecialchars($account['acct_desc']); ?>"
+                            >
+                                <?php echo htmlspecialchars($account['acct_desc']); ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ($_SESSION['department'] == "Wealth Creation" || $staff["level"] == "ce") : ?>
+                        <div>
+                        <input type="hidden" class="common-inputs" name="debit_account" value="till" maxlength="50">
+                        </div>
+                        
+                        <div>
+                        <input type="hidden" class="common-inputs" name="credit_account_wc" id="credit_account_wc" value="" maxlength="50">
+                        </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <input type="hidden" class="common-inputs" name="income_line" id="income_line" value="">
+                    </div>
+
+
                     <!-- Car Park Form -->
-                    <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="form_car_park">
-                        <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">Car Park Details</h3>
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Category <span class="text-red-600">*</span></label>
-                            <select name="category" id="cp_category" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                                <option value="">Select category</option>
-                                <option value="Car Park 1 (Alpha 1)">Car Park 1 (Alpha 1)</option>
-                                <option value="Car Park 2 (Alpha 2)">Car Park 2 (Alpha 2)</option>
-                            </select>
+                    <div id="form_car_park" class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                    <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                        🚗 Car Park Details
+                    </h3>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Category <span class="text-red-600">*</span>
+                        </label>
+                        <select 
+                        name="category" 
+                        id="cp_category" 
+                        data-required="true"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                        <option value="">Select category</option>
+                        <option value="Car Park 1 (Alpha 1)">Car Park 1 (Alpha 1)</option>
+                        <option value="Car Park 2 (Alpha 2)">Car Park 2 (Alpha 2)</option>
+                        </select>
+                    </div>
+
+                    <!-- Ticket Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Ticket Category <span class="text-red-600">*</span>
+                        </label>
+                        <select 
+                            name="ticket_category" 
+                            id="cp_ticket" 
+                            onchange="calculateAmount()" 
+                            data-required="true"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="">Select ticket</option>
+                            <option value="500">&#8358;500</option>
+                            <option value="700">&#8358;700</option>
+                        </select>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="mb-4">
-                                <label class="block mb-2 font-bold text-gray-800">Ticket Category <span class="text-red-600">*</span></label>
-                                <select name="ticket_category" id="cp_ticket" onchange="calculateAmount()" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                                    <option value="500">&#8358;500</option>
-                                    <option value="700">&#8358;700</option>
-                                </select>
-                            </div>
-                            <div class="mb-4">
-                                <label class="block mb-2 font-bold text-gray-800">No of Tickets <span class="text-red-600">*</span></label>
-                                <input type="number" name="no_of_tickets" id="cp_tickets" min="1" onchange="calculateAmount()" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                            </div>
+
+                        <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            No. of Tickets <span class="text-red-600">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            name="no_of_tickets" 
+                            id="cp_tickets" 
+                            min="1" 
+                            onchange="calculateAmount()" 
+                            data-required="true"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
                         </div>
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Amount <span class="text-red-600">*</span></label>
-                            <input type="number" name="amount_paid" id="cp_amount" step="0.01" readonly class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-sm">
-                        </div>
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Transaction Description</label>
-                            <textarea name="transaction_descr" id="cp_desc" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">Car Park Collection</textarea>
-                        </div>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="mt-6">
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Amount <span class="text-red-600">*</span>
+                        </label>
+                        <input 
+                        type="number" 
+                        name="amount_paid" 
+                        id="cp_amount" 
+                        step="0.01" 
+                        readonly 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                    </div>
+
+                    <!-- Transaction Description -->
+                    <div class="mt-6">
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Transaction Description
+                        </label>
+                        <textarea 
+                        name="transaction_descr" 
+                        id="cp_desc" 
+                        rows="2" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >Car Park Collection</textarea>
+                    </div>
                     </div>
 
                     <!-- Loading Form -->
-                    <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="form_loading">
-                        <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">Loading & Offloading Details</h3>
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Category <span class="text-red-600">*</span></label>
-                            <select name="category" id="ld_category" onchange="calculateAmount()" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                                <option value="">Select category</option>
-                                <option value="Goods (Offloading) - N7000" data-amount="7000">Goods (Offloading) - N7000</option>
-                                <option value="Goods (Offloading) - N15000" data-amount="15000">Goods (Offloading) - N15000</option>
-                                <option value="Goods (Offloading) - N20000" data-amount="20000">Goods (Offloading) - N20000</option>
-                                <option value="Goods (Offloading) - N30000" data-amount="30000">Goods (Offloading) - N30000</option>
-                                <option value="Goods (Loading) - N20000" data-amount="20000">Goods (Loading) - N20000</option>
-                                <option value="40 feet container - (Offloading) N30000" data-amount="30000">40 feet container - (Offloading) N30000</option>
-                                <option value="40 feet container - (Apple Offloading - Sunday) - N60000" data-amount="60000">40 feet container - (Apple Offloading - Sunday) - N60000</option>
-                            </select>
+                    <div id="form_loading" class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                    <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                        🚚 Loading & Offloading Details
+                    </h3>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Category <span class="text-red-600">*</span>
+                        </label>
+                        <select 
+                        name="category" 
+                        id="ld_category" 
+                        onchange="calculateAmount()" 
+                        data-required="true"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                        <option value="">Select category</option>
+                        <option value="Goods (Offloading) - N7000" data-amount="7000">Goods (Offloading) - ₦7,000</option>
+                        <option value="Goods (Offloading) - N15000" data-amount="15000">Goods (Offloading) - ₦15,000</option>
+                        <option value="Goods (Offloading) - N20000" data-amount="20000">Goods (Offloading) - ₦20,000</option>
+                        <option value="Goods (Offloading) - N30000" data-amount="30000">Goods (Offloading) - ₦30,000</option>
+                        <option value="Goods (Loading) - N20000" data-amount="20000">Goods (Loading) - ₦20,000</option>
+                        <option value="40 feet container - (Offloading) N30000" data-amount="30000">40ft Container (Offloading) - ₦30,000</option>
+                        <option value="40 feet container - (Apple Offloading - Sunday) - N60000" data-amount="60000">40ft Container (Apple Offloading - Sunday) - ₦60,000</option>
+                        </select>
+                    </div>
+
+                    <!-- No. of Days and Plate No -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            No. of Days <span class="text-red-600">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            name="no_of_days" 
+                            id="ld_days" 
+                            min="1" 
+                            value="1" 
+                            onchange="calculateAmount()" 
+                            data-required="true"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="mb-4">
-                                <label class="block mb-2 font-bold text-gray-800">No of Days <span class="text-red-600">*</span></label>
-                                <input type="number" name="no_of_days" id="ld_days" min="1" value="1" onchange="calculateAmount()" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                            </div>
-                            <div class="mb-4">
-                                <label class="block mb-2 font-bold text-gray-800">Plate No <span class="text-red-600">*</span></label>
-                                <input type="text" name="plate_no" id="ld_plate" maxlength="8" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                            </div>
+
+                        <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Plate No <span class="text-red-600">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="plate_no" 
+                            id="ld_plate" 
+                            maxlength="8" 
+                            data-required="true"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
                         </div>
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Amount <span class="text-red-600">*</span></label>
-                            <input type="number" name="amount_paid" id="ld_amount" step="0.01" readonly class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-sm">
-                        </div>
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Transaction Description</label>
-                            <textarea name="transaction_descr" id="ld_desc" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">Loading & Offloading Charges</textarea>
-                        </div>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="mt-6">
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Amount <span class="text-red-600">*</span>
+                        </label>
+                        <input 
+                        type="number" 
+                        name="amount_paid" 
+                        id="ld_amount" 
+                        step="0.01" 
+                        readonly 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                    </div>
+
+                    <!-- Transaction Description -->
+                    <div class="mt-6">
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Transaction Description
+                        </label>
+                        <textarea 
+                        name="transaction_descr" 
+                        id="ld_desc" 
+                        rows="2" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >Loading & Offloading Charges</textarea>
+                    </div>
                     </div>
 
                     <!-- Daily Trade Form -->
@@ -567,7 +737,7 @@ $scroll_boards = $db->resultSet();
                         </div>
                         <div class="mb-4">
                             <label class="block mb-2 font-bold text-gray-800">Transaction Description <span class="text-red-600">*</span></label>
-                            <textarea name="transaction_descr" id="gen_desc" rows="3" placeholder="Describe the transaction in detail" required class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm"></textarea>
+                            <textarea name="transaction_descr" id="gen_desc" rows="3" placeholder="Describe the transaction in detail" data-required="true" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm"></textarea>
                         </div>
                     </div>
 
@@ -585,27 +755,120 @@ $scroll_boards = $db->resultSet();
     <script>
         let currentIncomeLine = '';
 
+        // function selectIncomeLine(incomeLine) {
+        //     currentIncomeLine = incomeLine;
+        //     document.getElementById('income_line_type').value = incomeLine;
+        //     document.getElementById('credit_account_wc').value = incomeLine;
+
+        //     document.querySelectorAll('.income-line-card').forEach(card => {
+        //         card.classList.remove('bg-gradient-to-br', 'from-pink-400', 'to-red-500', 'border-4', 'border-white');
+        //         card.classList.add('bg-gradient-to-br', 'from-blue-500', 'to-purple-600');
+        //     });
+
+        //     const selectedCard = document.querySelector(`[data-income-line="${incomeLine}"]`);
+        //     selectedCard.classList.remove('from-blue-500', 'to-purple-600');
+        //     selectedCard.classList.add('from-pink-400', 'to-red-500', 'border-4', 'border-white');
+
+        //     document.querySelectorAll('.form-section').forEach(section => {
+        //         section.classList.add('hidden');
+        //     });
+
+        //     document.getElementById('common_fields').classList.remove('hidden');
+        //     document.getElementById(`form_${incomeLine}`).classList.remove('hidden');
+        //     document.getElementById('submit_section').classList.remove('hidden');
+        // }
+        // function selectIncomeLine(incomeLine) {
+        //     currentIncomeLine = incomeLine;
+        //     document.getElementById('income_line_type').value = incomeLine;
+        //     document.getElementById('credit_account_wc').value = incomeLine;
+
+        //     // Reset all cards' appearance
+        //     document.querySelectorAll('.income-line-card').forEach(card => {
+        //         card.classList.remove('bg-gradient-to-br', 'from-pink-400', 'to-red-500', 'border-4', 'border-white');
+        //         card.classList.add('bg-gradient-to-br', 'from-blue-500', 'to-purple-600');
+        //     });
+
+        //     // Highlight selected card
+        //     const selectedCard = document.querySelector(`[data-income-line="${incomeLine}"]`);
+        //     selectedCard.classList.remove('from-blue-500', 'to-purple-600');
+        //     selectedCard.classList.add('from-pink-400', 'to-red-500', 'border-4', 'border-white');
+
+        //     // Hide all form sections and disable their inputs
+        //     document.querySelectorAll('.form-section').forEach(section => {
+        //         section.classList.add('hidden');
+        //         section.querySelectorAll('input, select, textarea').forEach(el => {
+        //             el.disabled = true;
+        //         });
+        //     });
+
+        //     // Show selected form and enable its inputs
+        //     const activeSection = document.getElementById(`form_${incomeLine}`);
+        //     if (activeSection) {
+        //         activeSection.classList.remove('hidden');
+        //         activeSection.querySelectorAll('input, select, textarea').forEach(el => {
+        //             el.disabled = false;
+        //         });
+        //     }
+
+        //     // Always show the submit section
+        //     document.getElementById('common_fields').classList.remove('hidden');
+        //     document.getElementById('submit_section').classList.remove('hidden');
+        // }
         function selectIncomeLine(incomeLine) {
-            currentIncomeLine = incomeLine;
-            document.getElementById('income_line_type').value = incomeLine;
+    currentIncomeLine = incomeLine;
+    document.getElementById('income_line_type').value = incomeLine;
+    document.getElementById('credit_account_wc').value = incomeLine;
+    document.getElementById('income_line').value = incomeLine;
 
-            document.querySelectorAll('.income-line-card').forEach(card => {
-                card.classList.remove('bg-gradient-to-br', 'from-pink-400', 'to-red-500', 'border-4', 'border-white');
-                card.classList.add('bg-gradient-to-br', 'from-blue-500', 'to-purple-600');
-            });
+    // Reset all cards' appearance
+    document.querySelectorAll('.income-line-card').forEach(card => {
+        card.classList.remove('bg-gradient-to-br', 'from-pink-400', 'to-red-500', 'border-4', 'border-white');
+        card.classList.add('bg-gradient-to-br', 'from-blue-500', 'to-purple-600');
+    });
 
-            const selectedCard = document.querySelector(`[data-income-line="${incomeLine}"]`);
+    // Highlight selected card
+    const selectedCard = document.querySelector(`[data-income-line="${incomeLine}"]`);
+        if (selectedCard) {
             selectedCard.classList.remove('from-blue-500', 'to-purple-600');
             selectedCard.classList.add('from-pink-400', 'to-red-500', 'border-4', 'border-white');
-
-            document.querySelectorAll('.form-section').forEach(section => {
-                section.classList.add('hidden');
-            });
-
-            document.getElementById('common_fields').classList.remove('hidden');
-            document.getElementById(`form_${incomeLine}`).classList.remove('hidden');
-            document.getElementById('submit_section').classList.remove('hidden');
         }
+
+        // Hide all form sections and disable their inputs
+        document.querySelectorAll('.form-section').forEach(section => {
+            section.classList.add('hidden');
+            section.querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = true;
+                el.removeAttribute('required'); // remove required from hidden elements
+            });
+        });
+
+        // Show selected form and enable its inputs
+        const activeSection = document.getElementById(`form_${incomeLine}`);
+        if (activeSection) {
+            activeSection.classList.remove('hidden');
+            activeSection.querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = false;
+                // restore required if marked as data-required="true"
+                if (el.getAttribute('data-required') === 'true') {
+                    el.setAttribute('required', 'required');
+                }
+            });
+        }
+
+        // Always show the common and submit sections
+        const commonFields = document.getElementById('common_fields');
+        const submitSection = document.getElementById('submit_section');
+        if (commonFields) {
+            commonFields.classList.remove('hidden');
+            commonFields.querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = false;
+            });
+        }
+        if (submitSection) {
+            submitSection.classList.remove('hidden');
+        }
+    }
+
 
         document.getElementById('credit_account').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
@@ -669,7 +932,7 @@ $scroll_boards = $db->resultSet();
         document.querySelectorAll('input[name="amount_paid"]').forEach(input => {
             input.addEventListener('change', function() {
                 const amountPaid = parseFloat(this.value) || 0;
-                const remittanceBalance = <?php echo $current_remittance_balance; ?>;
+                const remittanceBalance = <?php echo $current_remittance_balance['unposted']; ?>;
 
                 if (amountPaid > remittanceBalance) {
                     alert('WARNING: Amount (₦' + amountPaid.toFixed(2) + ') exceeds remittance balance (₦' +

@@ -47,7 +47,7 @@ $other_staff = $paymentProcessor->getOtherStaffList();
 $current_remittance_balance = [];
 $selected_income_line = isset($_GET['income_line']) ? $_GET['income_line'] : '';
 
-// $credit_legs = $processor->getIncomeLineAccounts();
+//$credit_legs = $paymentProcessor->getIncomeLineAccounts();
 
 if ($posting_officer_dept == "Wealth Creation") {
     $current_remittance_balance = $transactionManager->getRemittanceBalance(
@@ -815,59 +815,83 @@ $scroll_boards = $db->resultSet();
         //     document.getElementById('submit_section').classList.remove('hidden');
         // }
         function selectIncomeLine(incomeLine) {
-    currentIncomeLine = incomeLine;
-    document.getElementById('income_line_type').value = incomeLine;
-    document.getElementById('credit_account_wc').value = incomeLine;
-    document.getElementById('income_line').value = incomeLine;
+            currentIncomeLine = incomeLine;
 
-    // Reset all cards' appearance
-    document.querySelectorAll('.income-line-card').forEach(card => {
-        card.classList.remove('bg-gradient-to-br', 'from-pink-400', 'to-red-500', 'border-4', 'border-white');
-        card.classList.add('bg-gradient-to-br', 'from-blue-500', 'to-purple-600');
-    });
+            currentIncomeLine = incomeLine;
 
-    // Highlight selected card
-    const selectedCard = document.querySelector(`[data-income-line="${incomeLine}"]`);
-        if (selectedCard) {
-            selectedCard.classList.remove('from-blue-500', 'to-purple-600');
-            selectedCard.classList.add('from-pink-400', 'to-red-500', 'border-4', 'border-white');
-        }
+            // Define aliases just like you'd do with PHP conditions
+            var aliasMap = {
+                'car_park': 'car_park',
+                'daily_trade': 'daily_trade',
+                'daily_trade_arrears': 'daily_trade_arrears',
+                'hawkers_ticket': 'hawkers_ticket',
+                'wheel_barrow_ticket': 'wheel_barrow_ticket',
+                'loading': 'loading',
+                'offloading': 'offloading',
+                'overnight_parking': 'overnight_parking',
+                'toilet_collection': 'toilet_collection',
+                // add more mappings as needed
+            };
 
-        // Hide all form sections and disable their inputs
-        document.querySelectorAll('.form-section').forEach(section => {
-            section.classList.add('hidden');
-            section.querySelectorAll('input, select, textarea').forEach(el => {
-                el.disabled = true;
-                el.removeAttribute('required'); // remove required from hidden elements
+            // Get alias from the map (default to incomeLine if not found)
+            var alias = aliasMap[incomeLine] || incomeLine;
+            var aliasField = document.getElementById('credit_account_wc');
+            if (aliasField) {
+                aliasField.value = alias;
+            }
+
+            document.getElementById('income_line_type').value = incomeLine;
+            //document.getElementById('credit_account_wc').value = incomeLine;
+            document.getElementById('income_line').value = incomeLine;
+
+            // Reset all cards' appearance
+            document.querySelectorAll('.income-line-card').forEach(card => {
+                card.classList.remove('bg-gradient-to-br', 'from-pink-400', 'to-red-500', 'border-4', 'border-white');
+                card.classList.add('bg-gradient-to-br', 'from-blue-500', 'to-purple-600');
             });
-        });
 
-        // Show selected form and enable its inputs
-        const activeSection = document.getElementById(`form_${incomeLine}`);
-        if (activeSection) {
-            activeSection.classList.remove('hidden');
-            activeSection.querySelectorAll('input, select, textarea').forEach(el => {
-                el.disabled = false;
-                // restore required if marked as data-required="true"
-                if (el.getAttribute('data-required') === 'true') {
-                    el.setAttribute('required', 'required');
-                }
-            });
-        }
+            // Highlight selected card
+            const selectedCard = document.querySelector(`[data-income-line="${incomeLine}"]`);
+            if (selectedCard) {
+                selectedCard.classList.remove('from-blue-500', 'to-purple-600');
+                selectedCard.classList.add('from-pink-400', 'to-red-500', 'border-4', 'border-white');
+            }
 
-        // Always show the common and submit sections
-        const commonFields = document.getElementById('common_fields');
-        const submitSection = document.getElementById('submit_section');
-        if (commonFields) {
-            commonFields.classList.remove('hidden');
-            commonFields.querySelectorAll('input, select, textarea').forEach(el => {
-                el.disabled = false;
+            // Hide all form sections and disable their inputs
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.add('hidden');
+                section.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.disabled = true;
+                    el.removeAttribute('required'); // remove required from hidden elements
+                });
             });
+
+            // Show selected form and enable its inputs
+            const activeSection = document.getElementById(`form_${incomeLine}`);
+            if (activeSection) {
+                activeSection.classList.remove('hidden');
+                activeSection.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.disabled = false;
+                    // restore required if marked as data-required="true"
+                    if (el.getAttribute('data-required') === 'true') {
+                        el.setAttribute('required', 'required');
+                    }
+                });
+            }
+
+            // Always show the common and submit sections
+            const commonFields = document.getElementById('common_fields');
+            const submitSection = document.getElementById('submit_section');
+            if (commonFields) {
+                commonFields.classList.remove('hidden');
+                commonFields.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.disabled = false;
+                });
+            }
+            if (submitSection) {
+                submitSection.classList.remove('hidden');
+            }
         }
-        if (submitSection) {
-            submitSection.classList.remove('hidden');
-        }
-    }
 
 
         document.getElementById('credit_account').addEventListener('change', function() {

@@ -259,7 +259,10 @@ class PaymentProcessor {
     /**
      * Get account information
      */
-    public function getAccountInfo($account_identifier, $by_alias = false) {
+    public function getAccountInfo($account_identifier, $by_alias = true) {
+        // Debug check
+         echo "<pre>DEBUG: account_identifier = " . htmlspecialchars($account_identifier) . 
+         " | by_alias = " . ($by_alias ? 'true' : 'false') . "</pre>";
         if ($by_alias) {
             $this->db->query("SELECT acct_id, acct_table_name, acct_desc FROM accounts WHERE acct_alias = :identifier");
         } else {
@@ -520,7 +523,7 @@ class PaymentProcessor {
             $credit_account_info = $this->getAccountInfo($data['credit_account']);
 
             if (!$debit_account_info || !$credit_account_info) {
-                return ['success' => false, 'message' => 'Invalid account selection'];
+                return ['success' => false, 'message' => 'Invalid account information selection'];
             }
 
             $transaction_desc = $credit_account_info['acct_desc'] . ' - ' . $transaction_desc;

@@ -440,8 +440,8 @@ class PaymentProcessor {
             $errors[] = 'Date of payment is required';
         }
 
-        if (empty($data['receipt_no'])) {
-            $errors[] = 'Receipt number is required';
+        if (empty($data['receipt_no']) || !preg_match('/^\d{7}$/', $data['receipt_no'])) {
+            $errors[] = 'Receipt number is required or invalid characters';
         } else {
             $existing = $this->checkReceiptExists($data['receipt_no']);
             if ($existing) {
@@ -449,8 +449,8 @@ class PaymentProcessor {
             }
         }
 
-        if (empty($data['amount_paid']) || $data['amount_paid'] <= 0) {
-            $errors[] = 'Amount must be greater than 0';
+        if (empty($data['amount_paid']) || !is_numeric($data['amount_paid']) || $data['amount_paid'] <= 0) {
+            $errors[] = 'Amount must be a valid number and greater than 0.';
         }
 
         if (empty($data['transaction_desc'])) {

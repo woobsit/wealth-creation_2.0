@@ -163,8 +163,8 @@ $scroll_boards = $db->resultSet();
         </div>
     </div>
     <?php endif; ?>
-    <div class="max-w-7xl mx-auto px-4 py-6">
-
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-8"> 
+    <!-- max-w-7xl mx-auto px-4 py-6 -->
         <div class="mb-6">
             <h2 class="text-3xl font-bold text-gray-800 mb-1">New Payment Posting - All Income Lines</h2>
             <p class="text-gray-600">Officer: <strong><?php echo htmlspecialchars($posting_officer_name); ?></strong> |

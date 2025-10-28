@@ -449,11 +449,18 @@ class PaymentProcessor {
             }
         }
 
+    if (empty($data['remitting_staff'])) {
+            $errors[] = 'The remitting staff name is required';
+        }
+
         if (empty($data['amount_paid']) || !is_numeric($data['amount_paid']) || $data['amount_paid'] <= 0) {
             $errors[] = 'Amount must be a valid number and greater than 0.';
         }
+//var_dump($data['income_line']);
+//var_dump($data['income_line_type']);
 
-        if($data['income_line'] !== "car_sticker" || $data['income_line'] !== "car_park" || $data['income_line'] !== "loading"){
+//exit();
+        if($data['income_line_type'] !== "car_sticker" AND $data['income_line_type'] !== "car_park" AND $data['income_line_type'] !== "loading"){
         if (empty($data['transaction_desc'])) {
             $errors[] = 'Transaction description is required';
         }
@@ -466,6 +473,8 @@ class PaymentProcessor {
         if (empty($data['credit_account'])) {
             $errors[] = 'Credit account (income line) is required';
         }
+
+
 
         if ($data['posting_officer_dept'] == 'Wealth Creation' && !empty($data['remit_id'])) {
             $balance = $this->getRemittanceBalance($data['posting_officer_id'], $data['current_date']);

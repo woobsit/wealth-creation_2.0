@@ -24,7 +24,7 @@ $staff = $user->getUserStaffDetail($user_id);
 
 $current_date = date('Y-m-d');
 $errors = [];
-$success_message = '';
+//$success_message = '';
 
 // $role = $user->getUserAdminRole($user_id);
 // if ($role['acct_post_record'] != "Yes") {
@@ -109,8 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction']
 
             if ($result['success']) {
                 $db->endTransaction();
-                $success_message = 'Payment successfully posted for approval!';
-                header("refresh:2; url=payments_unified.php?income_line=" . urlencode($posting_data['income_line_type']));
+               
+                header("refresh:2; url=payments_unified.php?income_line=" . urlencode($posting_data['income_line_type'])."&success=".true);
             } else {
                 $db->cancelTransaction();
                 $errors[] = $result['message'];
@@ -195,10 +195,10 @@ $scroll_boards = $db->resultSet();
         </div>
         <?php endif; ?>
 
-        <?php if ($success_message): ?>
+        <?php if (isset($_GET['success'])): ?>
         <div class="bg-green-50 border border-green-400 text-green-800 px-4 py-3 rounded-lg mb-4">
             <h4 class="font-bold mb-2">Success!</h4>
-            <p><?php echo $success_message; ?></p>
+            <p><?php echo 'Payment successfully posted for approval!'; ?></p>
         </div>
         <?php endif; ?>
 
@@ -671,7 +671,7 @@ $scroll_boards = $db->resultSet();
                             <label class="block mb-2 text-sm font-medium text-gray-700">
                                 Toilet <span class="text-red-600">*</span>
                             </label>
-                            <select name="" id="ld_category" data-required="false"
+                            <select name="" data-required="false"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                 <option value="">A Block Toilet</option>
                                 <option value="">Buka Toilet</option>
@@ -687,7 +687,7 @@ $scroll_boards = $db->resultSet();
                             <label class="block mb-2 text-sm font-medium text-gray-700">
                                 Amount <span class="text-red-600">*</span>
                             </label>
-                            <input type="number" name="amount_paid" id="ld_amount" step="0.01"
+                            <input type="number" name="amount_paid" id="ld_amount" step="1"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
@@ -895,7 +895,7 @@ $scroll_boards = $db->resultSet();
                             <label class="block mb-2 text-sm font-medium text-gray-700">
                                 Amount <span class="text-red-600">*</span>
                             </label>
-                            <input type="number" name="amount_paid" id="ld_amount" step="0.01" readonly
+                            <input type="number" name="amount_paid" id="loading_amount" step="0.01" readonly
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
@@ -1304,16 +1304,17 @@ $scroll_boards = $db->resultSet();
       if (incomeLine === 'loading') {
     // 1. Get the select element
     const category = document.getElementById('ld_category');
-    
     // 2. Safely retrieve the numerical value from the 'data-amount' attribute
     const selectedOption = category.options[category.selectedIndex];
+
     const amount = parseFloat(selectedOption?.getAttribute('data-amount')) || 0; // If data-amount is not found, amount will be 0
-    
+
     // 3. Get the number of days, defaulting to 1
     const days = parseInt(document.getElementById('ld_days').value) || 1;
-    
+                console.log(days);
+
     // 4. Calculate and set the amount
-    document.getElementById('ld_amount').value = (amount * days).toFixed(2);
+    document.getElementById('loading_amount').value = (amount * days).toFixed(2);
 }
 
         if (incomeLine === 'daily_trade') {

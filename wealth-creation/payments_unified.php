@@ -66,6 +66,12 @@ if ($posting_officer_dept == "Wealth Creation") {
     );
 }
 
+if (isset($_SESSION['form_errors'])) {
+    $errors = $_SESSION['form_errors'];
+
+    // ⚠️ Clear the session variable immediately after retrieving it
+    unset($_SESSION['form_errors']);}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction'])) {
     try {
         $posting_data = [
@@ -96,13 +102,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction']
             'board_name'            => isset($_POST['board_name']) ? $_POST['board_name'] : '',
             'car_sticker'            => isset($_POST['car_sticker']) ? $_POST['car_sticker'] : ''
         ];
-        // print_r($posting_data);
-        // exit;
+        
         $validation = $paymentProcessor->validatePosting($posting_data);
 
         if (!$validation['valid']) {
             $errors = $validation['errors'];
-            unset($_GET['success']);
+            $_SESSION['form_errors'] = $errors;
+            
+             header("refresh:2; url=payments_unified.php?income_line=" . urlencode($posting_data['income_line_type']));
         } else {
             $db->beginTransaction();
 
@@ -1232,30 +1239,32 @@ $scroll_boards = $db->resultSet();
                 'other_pos': 'other_pos',
                 'car_loading': 'car_loading',
                 'loading': 'loading',
-                'Cleaning Fee': 'Cleaning Fee',
-                'Fruit Offloading': 'offloading_fruit',
-                'Ok Loading - Offloading': 'ok_loading_offloading',
-                'Parking Store': 'Parking Store',
-                'Pallet Loading': 'pallet',
-                'Offloading Truck': 'offloading_truck',
-                'offloading': 'offloading',
-                'overnight_parking': 'overnight_parking',
                 'toilet_collection': 'toilet_collection',
-                'abattoir': 'abattoir',
-                'Wealth Creation Funds Account': 'wc_funds_ac',
-                'KClamp (New Space)': 'kclamp',
-                'Car Park Ticket': 'carpark',
-                'Application Form': 'application_form',
                 'car_sticker': 'car_sticker',
-                'Taxi Operators (Renewal)': 'taxi_operators',
-                'Toilet Collection': 'toilet_collection',
-                'Key Replacement': 'key_replacement',
-                'Other Loading - Offloading': 'goods_loading_offloading',
-                'Food Seller Permit': 'food_seller_permit',
-                'Retailers Monthly Due': 'retailers_due',
-                'WheelBarrow Ticket': 'wheelbarrow',
-                'Work Permit': 'work_permit',
-                'Trade Permit': 'trade_permit'
+                'abattoir': 'abattoir',
+                // 'Cleaning Fee': 'Cleaning Fee',
+                // 'Fruit Offloading': 'offloading_fruit',
+                // 'Ok Loading - Offloading': 'ok_loading_offloading',
+                // 'Parking Store': 'Parking Store',
+                // 'Pallet Loading': 'pallet',
+                // 'Offloading Truck': 'offloading_truck',
+                // 'offloading': 'offloading',
+                // 'overnight_parking': 'overnight_parking',
+                
+                // 'Wealth Creation Funds Account': 'wc_funds_ac',
+                // 'KClamp (New Space)': 'kclamp',
+                // 'Car Park Ticket': 'carpark',
+                // 'Application Form': 'application_form',
+                
+                // 'Taxi Operators (Renewal)': 'taxi_operators',
+                // 'Toilet Collection': 'toilet_collection',
+                // 'Key Replacement': 'key_replacement',
+                // 'Other Loading - Offloading': 'goods_loading_offloading',
+                // 'Food Seller Permit': 'food_seller_permit',
+                // 'Retailers Monthly Due': 'retailers_due',
+                // 'WheelBarrow Ticket': 'wheelbarrow',
+                // 'Work Permit': 'work_permit',
+                // 'Trade Permit': 'trade_permit'
                 // add more mappings as needed
             };
 

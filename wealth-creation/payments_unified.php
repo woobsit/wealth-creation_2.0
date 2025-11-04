@@ -24,7 +24,7 @@ $staff = $user->getUserStaffDetail($user_id);
 
 $current_date = date('Y-m-d');
 $errors = [];
-$success_message = '';
+//$success_message = '';
 
 // $role = $user->getUserAdminRole($user_id);
 // if ($role['acct_post_record'] != "Yes") {
@@ -37,8 +37,18 @@ $posting_officer_dept = $_SESSION['department'];
 $db->query("SELECT * FROM accounts WHERE income_line = 'Yes' AND active = 'Yes' ORDER BY acct_desc ASC");
 $income_lines = $db->resultSet();
 
-$db->query("SELECT * FROM accounts WHERE active = 'Yes' AND ( acct_desc = 'Account Till' OR acct_desc = 'Wealth Creation Funds Account' ) ORDER BY acct_desc ASC");
-$all_accounts = $db->resultSet();
+// $db->query("SELECT * FROM accounts WHERE active = 'Yes' AND ( acct_desc = 'Account Till' OR acct_desc = 'Wealth Creation Funds Account' ) ORDER BY acct_desc ASC");
+// $all_accounts = $db->resultSet();
+
+$db->query("SELECT shop_no, customer_name FROM customers WHERE (facility_type = 'Coldroom' OR facility_type = 'Container' OR facility_type = 'Kclamp') AND shop_no != '' ORDER BY shop_no ASC");
+$kclamp = $db->resultSet();
+
+$db->query("SELECT shop_no, customer_name FROM customers ORDER BY shop_no ASC");
+$all_customers = $db->resultSet();
+
+$db->query("SELECT sticker_no FROM car_sticker WHERE status = '' ORDER BY sticker_no ASC");
+$all_stickers = $db->resultSet();
+
 
 // Get staff lists for dropdowns
 $wc_staff = $paymentProcessor->getStaffList('Wealth Creation');
@@ -59,9 +69,10 @@ if ($posting_officer_dept == "Wealth Creation") {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction'])) {
     try {
         $posting_data = [
+             'shop_no'            => isset($_POST['shop_no']) ? $_POST['shop_no'] : '',
             'date_of_payment'       => isset($_POST['date_of_payment']) ? $_POST['date_of_payment'] : '',
             'receipt_no'            => isset($_POST['receipt_no']) ? $_POST['receipt_no'] : '',
-            'amount_paid'           => isset($_POST['amount_paid']) ? $_POST['amount_paid'] : 0,
+            'amount_paid'           => isset($_POST['amount_paid']) ? trim($_POST['amount_paid']) : 0,
             'remitting_staff'       => isset($_POST['remitting_staff']) ? $_POST['remitting_staff'] : '',
             'transaction_desc'      => isset($_POST['transaction_descr']) ? $_POST['transaction_descr'] : '',
             'debit_account'         => isset($_POST['debit_account']) ? $_POST['debit_account'] : '',
@@ -82,7 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction']
             'quantity'              => isset($_POST['quantity']) ? trim($_POST['quantity']) : '',
             'no_of_nights'          => isset($_POST['no_of_nights']) ? trim($_POST['no_of_nights']) : '',
             'type'                  => isset($_POST['type']) ? $_POST['type'] : '',
-            'board_name'            => isset($_POST['board_name']) ? $_POST['board_name'] : ''
+            'board_name'            => isset($_POST['board_name']) ? $_POST['board_name'] : '',
+             'car_sticker'            => isset($_POST['car_sticker']) ? $_POST['car_sticker'] : ''
         ];
         // print_r($posting_data);
         // exit;
@@ -97,8 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction']
 
             if ($result['success']) {
                 $db->endTransaction();
-                $success_message = 'Payment successfully posted for approval!';
-                header("refresh:2; url=payments_unified.php?income_line=" . urlencode($posting_data['income_line_type']));
+               
+                header("refresh:2; url=payments_unified.php?income_line=" . urlencode($posting_data['income_line_type'])."&success=".true);
             } else {
                 $db->cancelTransaction();
                 $errors[] = $result['message'];
@@ -130,32 +142,33 @@ $scroll_boards = $db->resultSet();
 </head>
 
 <body class="bg-gray-100 font-sans">
-        <!-- Navigation -->
-        <?php include('include/header.php'); ?>
-        <!-- <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> -->
-        <?php if ($posting_officer_dept == "Wealth Creation"): ?>
-            <div class="relative z-40 mt-4 flex justify-center">
-                <div class="w-fit max-w-xl px-6 py-3 rounded-xl border 
+    <!-- Navigation -->
+    <?php include('include/header.php'); ?>
+    <!-- <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> -->
+    <?php if ($posting_officer_dept == "Wealth Creation"): ?>
+    <div class="relative z-40 mt-4 flex justify-center">
+        <div class="w-fit max-w-xl px-6 py-3 rounded-xl border 
                     <?php echo $current_remittance_balance['unposted'] > 0 
                         ? 'bg-red-50 border-red-300 text-red-800' 
                         : 'bg-emerald-50 border-emerald-300 text-emerald-800'; ?> 
                     shadow-sm font-semibold text-center tracking-wide transition-all duration-300">
-                    
-                    <div class="flex items-center justify-center space-x-2">
-                        <?php if ($current_remittance_balance['unposted'] > 0): ?>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>⚠ UNBALANCED — POST TO CLEAR</span>
-                        <?php else: ?>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                    d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>100% BALANCED</span>
-                        <?php endif; ?>
-                    </div>
+
+            <div class="flex items-center justify-center space-x-2">
+                <?php if ($current_remittance_balance['unposted'] > 0): ?>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>⚠ UNBALANCED — POST TO CLEAR</span>
+                <?php else: ?>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>100% BALANCED</span>
+                <?php endif; ?>
+            </div>
 
             <div class="mt-1 text-sm font-medium opacity-90">
                 TILL BALANCE: &#8358;<?php echo number_format($current_remittance_balance['unposted'], 2); ?>
@@ -170,6 +183,12 @@ $scroll_boards = $db->resultSet();
             <p class="text-gray-600">Officer: <strong><?php echo htmlspecialchars($posting_officer_name); ?></strong> |
                 Department: <strong><?php echo htmlspecialchars($posting_officer_dept); ?></strong></p>
         </div>
+        
+        <div class="flex items-center justify-between bg-white p-4 rounded shadow mb-6">
+            <div class="text-lg font-semibold text-gray-700">
+                <p><?php include ('countdown_script.php'); ?></p>
+            </div>
+        </div>
 
         <?php if (!empty($errors)): ?>
         <div class="bg-red-50 border border-red-400 text-red-800 px-4 py-3 rounded-lg mb-4">
@@ -182,15 +201,15 @@ $scroll_boards = $db->resultSet();
         </div>
         <?php endif; ?>
 
-        <?php if ($success_message): ?>
+        <?php if (isset($_GET['success'])): ?>
         <div class="bg-green-50 border border-green-400 text-green-800 px-4 py-3 rounded-lg mb-4">
             <h4 class="font-bold mb-2">Success!</h4>
-            <p><?php echo $success_message; ?></p>
+            <p><?php echo 'Payment successfully posted for approval!'; ?></p>
         </div>
         <?php endif; ?>
 
         <!-- Split Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <!-- Left Side - Income Lines -->
             <aside class="lg:col-span-1 bg-white rounded-xl shadow-md p-5 border border-gray-100 items-start">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
@@ -200,8 +219,8 @@ $scroll_boards = $db->resultSet();
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
                         data-income-line="general" onclick="selectIncomeLine('general')">
                         <div>
-                            <h4 class="text-lg font-bold mb-1">General/Other</h4>
-                            <p class="text-sm">Miscellaneous</p>
+                            <h5 class="text-sm font-bold">General/Other</h5>
+                            <p class="text-xs opacity-90">Miscellaneous</p>
                         </div>
                         <i class="fa fa-sack-dollar text-lg opacity-90"></i>
                     </div>
@@ -215,6 +234,44 @@ $scroll_boards = $db->resultSet();
                     </div>
 
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                        data-income-line="car_loading" onclick="selectIncomeLine('car_loading')">
+                        <div>
+                            <h5 class="text-sm font-bold">Car Loading</h5>
+                            <p class="text-xs opacity-90">Car Loading Tickets</p>
+                        </div>
+                        <i class="fa fa-car text-lg opacity-90"></i>
+                    </div>
+
+                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                        data-income-line="car_sticker" onclick="selectIncomeLine('car_sticker')">
+                        <div>
+                            <h5 class="text-sm font-bold">Car Sticker</h5>
+                            <p class="text-xs opacity-90">Stickers for Cars</p>
+                        </div>
+                        <i class="fa fa-car text-lg opacity-90"></i>
+                    </div>
+
+                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                        data-income-line="toilet_collection" onclick="selectIncomeLine('toilet_collection')">
+                        <div>
+                            <h5 class="text-sm font-bold">Toilet Collection</h5>
+                            <p class="text-xs opacity-90">Toilet Usage</p>
+                        </div>
+                        <i class="fa fa-car text-lg opacity-90"></i>
+                    </div>
+
+                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                        data-income-line="other_pos" onclick="selectIncomeLine('other_pos')">
+                        <div>
+                            <h5 class="text-sm font-bold">Other POS</h5>
+                            <p class="text-xs opacity-90">POS Tickets</p>
+                        </div>
+                        <i class="fa fa-car text-lg opacity-90"></i>
+                    </div>
+
+
+                    
+                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
                         data-income-line="loading" onclick="selectIncomeLine('loading')">
                         <div>
                             <h5 class="text-sm font-bold">Loading & Offloading</h5>
@@ -227,6 +284,14 @@ $scroll_boards = $db->resultSet();
                         <div>
                             <h5 class="text-sm font-bold">Daily Trade</h5>
                             <p class="text-xs opacity-90">Everyday Trade</p>
+                        </div>
+                        <i class="fa fa-store text-lg opacity-90"></i>
+                    </div>
+                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                        data-income-line="daily_trade_arrears" onclick="selectIncomeLine('daily_trade_arrears')">
+                        <div>
+                            <h5 class="text-sm font-bold">Daily Trade Arrears</h5>
+                            <p class="text-xs opacity-90">Everyday Trade Arrears</p>
                         </div>
                         <i class="fa fa-store text-lg opacity-90"></i>
                     </div>
@@ -270,13 +335,7 @@ $scroll_boards = $db->resultSet();
                         </div>
                         <i class="fa fa-scroll text-lg opacity-90"></i>
                     </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg" data-income-line="general" onclick="selectIncomeLine('general')">
-                        <div>
-                            <h5 class="text-sm font-bold mb-1">General/Other</h5>
-                            <p class="text-xs">Miscellaneous</p>
-                        </div>
-                        <i class="fa fa-sack-dollar text-lg opacity-90"></i>
-                    </div>
+
                 </div>
             </aside>
 
@@ -288,13 +347,16 @@ $scroll_boards = $db->resultSet();
                     <input type="hidden" name="posting_officer_dept" value="<?php echo $posting_officer_dept; ?>">
                     <input type="hidden" name="posting_officer_id" value="<?php echo $user_id; ?>">
                     <?php if ($posting_officer_dept == "Wealth Creation"): ?>
-                        <input type="hidden" name="remit_id" value="<?php echo $current_remittance_balance['remit_id']; ?>">
-                        <input type="hidden" name="amt_remitted" value="<?php echo $current_remittance_balance['unposted']; ?>">
+                    <input type="hidden" name="remit_id" value="<?php echo $current_remittance_balance['remit_id']; ?>">
+                    <input type="hidden" name="amt_remitted"
+                        value="<?php echo $current_remittance_balance['unposted']; ?>">
                     <?php endif; ?>
+                     <input type="hidden" class="common-inputs" name="income_line" id="income_line" value="">
 
                     <div id="default_info_section"
                         class="form-section p-8 bg-white rounded-xl shadow-lg border-l-4 border-blue-500 animate-fade-in">
-                        <h2 class="text-3xl font-extrabold text-gray-800 mb-4">Welcome to the Revenue Posting Portal 💰
+                        <h2 class="text-3xl font-extrabold text-gray-800 mb-4">Welcome to the Income Lines Posting
+                            Portal 💰
                         </h2>
                         <hr class="mb-4">
                         <p class="text-gray-600 mb-6">
@@ -311,293 +373,538 @@ $scroll_boards = $db->resultSet();
                             Select a card now to reveal the required posting fields and the Submit button.
                         </p>
                     </div>
+
+
                     <!-- Common Fields Section -->
-                    <div id="common_fields" class="common-inputs form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
-                    <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
-                        💳 Payment Details
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-700">
-                                Date of Payment <span class="text-red-600">*</span>
-                            </label>
-                            <input type="date" name="date_of_payment" value="<?php echo $current_date; ?>" required class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <div id="common_fields"
+                        class="common-inputs form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                        <h3
+                            class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                            💳 Payment Details
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+    <label class="block mb-2 text-sm font-medium text-gray-700">
+        Date of Payment <span class="text-red-600">*</span>
+    </label>
+    <input
+        type="date"
+        name="date_of_payment"
+        value="<?php echo isset($_POST['date_of_payment']) ? $_POST['date_of_payment'] : $current_date; ?>"
+        required
+        class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+    >
+</div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    Receipt No <span class="text-red-600">*</span>
+                                </label>
+                                <input type="text" name="receipt_no" 
+                               placeholder="7-digit receipt number"
+                                    pattern="^\d{7}$" maxlength="7" required
+                                    class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
                         </div>
 
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-700">
-                                Receipt No <span class="text-red-600">*</span>
-                            </label>
-                            <input type="text" name="receipt_no" placeholder="7-digit receipt number" pattern="^\d{7}$" maxlength="7" required class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        </div>
-                    </div>
-
-                    <!-- Conditional: Remittance -->
-                    <?php if ($posting_officer_dept == 'Wealth Creation' && $current_remittance_balance['unposted'] > 0): ?>
+                        <!-- Conditional: Remittance -->
+                        <?php if ($posting_officer_dept == 'Wealth Creation' && $current_remittance_balance['unposted'] > 0): ?>
                         <div class="mt-6">
-                        <label class="block mb-2 text-sm font-medium text-gray-700">Remittance</label>
-                        <select 
-                            name="remit_id" 
-                            required
-                            class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                        >
-                            <option value="">Select...</option>
-                            <option value="<?php echo $current_remittance_balance['remit_id']; ?>">
-                            <?php echo $current_remittance_balance['date'] . ': Remittance - ₦' . number_format($current_remittance_balance['unposted']); ?>
-                            </option>
-                        </select>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Row 2: Remitting Staff -->
-                    <div class="mt-6">
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Remitter's Name <span class="text-red-600">*</span>
-                        </label>
-                        <select name="remitting_staff" required class="common-inputs w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Select...</option>
-                            <?php foreach ($wc_staff as $staff_member): ?>
-                                <option value="<?php echo $staff_member['user_id']; ?>-wc">
-                                    <?php echo $staff_member['full_name']; ?>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">Remittance</label>
+                            <select name="remit_id" required
+                                class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                <option value="">Select...</option>
+                                <option value="<?php echo $current_remittance_balance['remit_id']; ?>">
+                                    <?php echo $current_remittance_balance['date'] . ': Remittance - ₦' . number_format($current_remittance_balance['unposted']); ?>
                                 </option>
-                            <?php endforeach; ?>
-                            <?php foreach ($other_staff as $staff_member): ?>
-                                <option value="<?php echo $staff_member['id']; ?>-so">
-                                    <?php echo $staff_member['full_name'] . ' - ' . $staff_member['department']; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Row 3: Debit & Credit Accounts -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <?php if ($_SESSION['department'] == "Accounts") : ?>
-                        <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                            Debit Account <span class="text-red-600">*</span>
-                        </label>
-                        <select  name="debit_account"  required class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">-- Select Debit Account --</option>
-                            <option value="10103">Account Till</option> 
-                            <option value="10150">Wealth Creation Funds Account</option>
-                        </select>
-                        </div>
-                        
-
-                        <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                            Credit Account (Income Line) <span class="text-red-600">*</span>
-                        </label>
-                        <select 
-                            name="credit_account" 
-                            id="credit_account" 
-                            required 
-                            class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                        >
-                            <option value="">-- Select Income Line --</option>
-                            <?php foreach ($income_lines as $account): ?>
-                            <option 
-                                value="<?php echo $account['acct_id']; ?>"
-                                data-desc="<?php echo htmlspecialchars($account['acct_desc']); ?>"
-                            >
-                                <?php echo htmlspecialchars($account['acct_desc']); ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
+                            </select>
                         </div>
                         <?php endif; ?>
 
-                        <?php if ($_SESSION['department'] == "Wealth Creation" || $staff["level"] == "ce") : ?>
-                        <div>
-                        <input type="hidden" class="common-inputs" name="debit_account" value="till" maxlength="50">
+                        <!-- Row 2: Remitting Staff -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Remitter's Name <span class="text-red-600">*</span>
+                            </label>
+                            <select name="remitting_staff" required class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+
+    <option value=""
+        <?php
+        // Check if the form was submitted and the selected value is NOT set or is empty.
+        // This handles both the default selection and the case where the user didn't select one.
+        if (!isset($_POST['remitting_staff']) || $_POST['remitting_staff'] == '') {
+            echo 'selected';
+        }
+        ?>
+    >Select...</option>
+
+    <?php foreach ($wc_staff as $staff_member): ?>
+        <?php
+        $option_value = $staff_member['user_id'] . '-wc';
+        $selected = (isset($_POST['remitting_staff']) && $_POST['remitting_staff'] == $option_value) ? 'selected' : '';
+        ?>
+        <option value="<?php echo $option_value; ?>" <?php echo $selected; ?>>
+            <?php echo $staff_member['full_name']; ?>
+        </option>
+    <?php endforeach; ?>
+
+    <?php foreach ($other_staff as $staff_member): ?>
+        <?php
+        $option_value = $staff_member['id'] . '-so';
+        $selected = (isset($_POST['remitting_staff']) && $_POST['remitting_staff'] == $option_value) ? 'selected' : '';
+        ?>
+        <option value="<?php echo $option_value; ?>" <?php echo $selected; ?>>
+            <?php echo $staff_member['full_name'] . ' - ' . $staff_member['department']; ?>
+        </option>
+    <?php endforeach; ?>
+
+</select>
                         </div>
-                        
-                        <div>
-                        <input type="hidden" class="common-inputs" name="credit_account_wc" id="credit_account_wc" value="" maxlength="50">
+
+                        <!-- Row 3: Debit & Credit Accounts -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <?php if ($_SESSION['department'] == "Accounts") : ?>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    Debit Account <span class="text-red-600">*</span>
+                                </label>
+                                <select name="debit_account" required class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+    
+    <option value="">
+        -- Select Debit Account --
+    </option>
+    
+    <option value="10103">
+        Account Till
+    </option> 
+    
+    <option value="10150">
+        Wealth Creation Funds Account
+    </option>
+    
+</select>
+                            </div>
+
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    Credit Account (Income Line) <span class="text-red-600">*</span>
+                                </label>
+                               <select 
+    name="credit_account" 
+    id="credit_account" 
+    required 
+    class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+>
+    <option value="">-- Select Income Line --</option>
+    
+    <?php foreach ($income_lines as $account): ?>
+        <?php
+        // Define the option's value
+        $option_value = $account['acct_id'];
+        
+        ?>
+        <option 
+            value="<?php echo $option_value; ?>"
+            data-desc="<?php echo htmlspecialchars($account['acct_desc']); ?>"
+           
+        >
+            <?php echo htmlspecialchars($account['acct_desc']); ?>
+        </option>
+    <?php endforeach; ?>
+</select>
+                            </div>
+                            <?php endif; ?>
+
+                            <?php if ($_SESSION['department'] == "Wealth Creation" || $staff["level"] == "ce") : ?>
+                            <div>
+                                <input type="hidden" class="common-inputs" name="debit_account" value="till"
+                                    maxlength="50">
+                            </div>
+
+                            <div>
+                                <input type="hidden" class="common-inputs" name="credit_account_wc"
+                                    id="credit_account_wc" value="" maxlength="50">
+                            </div>
+                            <?php endif; ?>
                         </div>
-                        <?php endif; ?>
+
+                       
                     </div>
 
-                    <input type="hidden" class="common-inputs" name="income_line" id="income_line" value="">
+                    <!-- General/Other Form -->
+                    <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="form_general">
+                        <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">
+                            General/Other Income</h3>
+                        <div class="mb-4">
+                            <label class="block mb-2 font-bold text-gray-800">Amount <span
+                                    class="text-red-600">*</span></label>
+                            <input type="number" name="amount_paid" id="gen_amount" step="1.00" min="0"
+                                class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2 font-bold text-gray-800">Transaction Description <span
+                                    class="text-red-600">*</span></label>
+                            <textarea name="transaction_descr" id="gen_desc" rows="3"
+                                placeholder="Describe the transaction in detail" data-required="true"
+                                class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm"></textarea>
+                        </div>
                     </div>
 
+                    <!-- Car Loading Form -->
+                    <div id="form_car_loading"
+                        class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                        <h3
+                            class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                            🚗 Car Loading Details
+                        </h3>
+
+                        <!-- Ticket Info -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    No. of Tickets <span class="text-red-600">*</span>
+                                </label>
+                                <input type="number" name="no_of_tickets" id="cl_ticket" min="1"
+                                    onchange="calculateAmount()" data-required="true"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Amount <span class="text-red-600">*</span>
+                            </label>
+                            <input type="number" name="amount_paid" id="cl_amount" step="0.01" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Transaction Description -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Transaction Description
+                            </label>
+                            <textarea name="transaction_descr" id="cp_desc" rows="2" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50">Car Loading Collection</textarea>
+                        </div>
+                    </div>
+
+
+                     <!-- Car Sticker -->
+                    <div id="form_car_sticker"
+                        class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                        <h3
+                            class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                            🚗 Car Stickers Details
+                        </h3>
+
+                         <!-- Sticker No -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Sticker No <span class="text-red-600">*</span>
+                            </label>
+                            <select name="" id="car_sticker"  data-required="false"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select sticker</option>
+                                <?php foreach ($all_stickers as $sticker): ?>
+                                    <option value="<?php echo $sticker['sticker_no']; ?>"
+                                        data-desc="<?php echo $sticker['sticker_no']; ?>">
+                                       <?php echo $sticker['sticker_no'];; ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Shop No and Plate No -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    Shop No: <span class="text-red-600">*</span>
+                                </label>
+                                 <div>
+                                    
+                                <select name="shop_no" 
+                                    data-required="true"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Select...</option>
+                                     <?php foreach ($kclamp as $kcustomer): ?>
+                                    <option value="<?php echo "{$kcustomer['shop_no']} - {$kcustomer['customer_name']}"; ?>"
+                                        data-desc="<?php echo "{$kcustomer['shop_no']} - {$kcustomer['customer_name']}"; ?>">
+                                       <?php echo "{$kcustomer['shop_no']} - {$kcustomer['customer_name']}"; ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                                     <?php foreach ($all_customers as $customer): ?>
+                                    <option value="<?php echo "{$customer['shop_no']} - {$customer['customer_name']}"; ?>"
+                                        data-desc="<?php echo "{$customer['shop_no']} - {$customer['customer_name']}"; ?>">
+                                       <?php echo "{$customer['shop_no']} - {$customer['customer_name']}"; ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    Plate No <span class="text-red-600">*</span>
+                                </label>
+                                <input type="text" name="plate_no" id="ld_plate" maxlength="8" data-required="true"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Amount <span class="text-red-600">*</span>
+                            </label>
+                            <input type="number" 
+                            value="60000" name="amount_paid" id="" step="0.01" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+
+                     <!-- Toilet Collection -->
+                    <div id="form_toilet_collection"
+                        class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                        <h3
+                            class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                            🚚 Toilet Collection Details
+                        </h3>
+
+                        <!-- Toilet -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Toilet <span class="text-red-600">*</span>
+                            </label>
+                            <select name="" data-required="false"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">A Block Toilet</option>
+                                <option value="">Buka Toilet</option>
+                                <option value="">Center Toilet</option>
+                                <option value="">Exit Toilet</option>
+                                <option value="">Pedestrian Toilet</option>
+                            </select>
+                        </div>
+
+
+                        <!-- Amount -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Amount <span class="text-red-600">*</span>
+                            </label>
+                            <input type="number" name="amount_paid" id="ld_amount" step="1"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Transaction Description -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Transaction Description
+                            </label>
+                            <textarea name="transaction_descr" id="ld_desc" rows="2"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50" readonly>Toilet Collection Charges</textarea>
+                        </div>
+                    </div>
+
+                     <!-- Other POS Tickets Form -->
+                    <div id="form_other_pos"
+                        class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                        <h3
+                            class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                            🚗 Other POS Tickets Details
+                        </h3>
+
+                        <!-- Ticket Info -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    No. of Tickets <span class="text-red-600">*</span>
+                                </label>
+                                <input type="number" name="no_of_tickets" id="op_ticket" min="1"
+                                    onchange="calculateAmount()" data-required="true"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Amount <span class="text-red-600">*</span>
+                            </label>
+                            <input type="number" name="amount_paid" id="op_amount" step="0.01" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Transaction Description -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Transaction Description
+                            </label>
+                            <textarea name="transaction_descr" id="cp_desc" rows="2" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-100">Other POS Ticket Collection</textarea>
+                        </div>
+                    </div>
 
                     <!-- Car Park Form -->
-                    <div id="form_car_park" class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
-                    <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
-                        🚗 Car Park Details
-                    </h3>
+                    <div id="form_car_park"
+                        class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                        <h3
+                            class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                            🚗 Car Park Details
+                        </h3>
 
-                    <!-- Category -->
-                    <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Category <span class="text-red-600">*</span>
-                        </label>
-                        <select 
-                        name="category" 
-                        id="cp_category" 
-                        data-required="true"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                        <option value="">Select category</option>
-                        <option value="Car Park 1 (Alpha 1)">Car Park 1 (Alpha 1)</option>
-                        <option value="Car Park 2 (Alpha 2)">Car Park 2 (Alpha 2)</option>
-                        </select>
-                    </div>
-
-                    <!-- Ticket Info -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <!-- Category -->
                         <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                            Ticket Category <span class="text-red-600">*</span>
-                        </label>
-                        <select 
-                            name="ticket_category" 
-                            id="cp_ticket" 
-                            onchange="calculateAmount()" 
-                            data-required="true"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="">Select ticket</option>
-                            <option value="500">&#8358;500</option>
-                            <option value="700">&#8358;700</option>
-                        </select>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Category <span class="text-red-600">*</span>
+                            </label>
+                            <select name="category" id="cp_category" data-required="true"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select category</option>
+                                <option value="Car Park 1 (Alpha 1)">Car Park 1 (Alpha 1)</option>
+                                <option value="Car Park 2 (Alpha 2)">Car Park 2 (Alpha 2)</option>
+                            </select>
                         </div>
 
-                        <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                            No. of Tickets <span class="text-red-600">*</span>
-                        </label>
-                        <input 
-                            type="number" 
-                            name="no_of_tickets" 
-                            id="cp_tickets" 
-                            min="1" 
-                            onchange="calculateAmount()" 
-                            data-required="true"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
+                        <!-- Ticket Info -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    Ticket Category <span class="text-red-600">*</span>
+                                </label>
+                                <select name="ticket_category" id="cp_ticket" onchange="calculateAmount()"
+                                    data-required="true"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Select ticket</option>
+                                    <option value="500">&#8358;500</option>
+                                    <option value="700">&#8358;700</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    No. of Tickets <span class="text-red-600">*</span>
+                                </label>
+                                <input type="number" name="no_of_tickets" id="cp_tickets" min="1"
+                                    onchange="calculateAmount()" data-required="true"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Amount -->
-                    <div class="mt-6">
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Amount <span class="text-red-600">*</span>
-                        </label>
-                        <input 
-                        type="number" 
-                        name="amount_paid" 
-                        id="cp_amount" 
-                        step="0.01" 
-                        readonly 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                    </div>
+                        <!-- Amount -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Amount <span class="text-red-600">*</span>
+                            </label>
+                            <input type="number" name="amount_paid" id="cp_amount" step="1" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
 
-                    <!-- Transaction Description -->
-                    <div class="mt-6">
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Transaction Description
-                        </label>
-                        <textarea 
-                        name="transaction_descr" 
-                        id="cp_desc" 
-                        rows="2" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >Car Park Collection</textarea>
-                    </div>
+                        <!-- Transaction Description -->
+                        <!-- <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Transaction Description
+                            </label>
+                            <textarea name="transaction_descr" id="cp_desc" rows="2"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">Car Park Collection</textarea>
+                        </div> -->
                     </div>
 
                     <!-- Loading Form -->
-                    <div id="form_loading" class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
-                    <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
-                        🚚 Loading & Offloading Details
-                    </h3>
+                    <div id="form_loading"
+                        class="form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                        <h3
+                            class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                            🚚 Loading & Offloading Details
+                        </h3>
 
-                    <!-- Category -->
-                    <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Category <span class="text-red-600">*</span>
-                        </label>
-                        <select 
-                        name="category" 
-                        id="ld_category" 
-                        onchange="calculateAmount()" 
-                        data-required="true"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                        <option value="">Select category</option>
-                        <option value="Goods (Offloading) - N7000" data-amount="7000">Goods (Offloading) - ₦7,000</option>
-                        <option value="Goods (Offloading) - N15000" data-amount="15000">Goods (Offloading) - ₦15,000</option>
-                        <option value="Goods (Offloading) - N20000" data-amount="20000">Goods (Offloading) - ₦20,000</option>
-                        <option value="Goods (Offloading) - N30000" data-amount="30000">Goods (Offloading) - ₦30,000</option>
-                        <option value="Goods (Loading) - N20000" data-amount="20000">Goods (Loading) - ₦20,000</option>
-                        <option value="40 feet container - (Offloading) N30000" data-amount="30000">40ft Container (Offloading) - ₦30,000</option>
-                        <option value="40 feet container - (Apple Offloading - Sunday) - N60000" data-amount="60000">40ft Container (Apple Offloading - Sunday) - ₦60,000</option>
-                        </select>
-                    </div>
+                        <!-- Category -->
+                       <div>
+    <label class="block mb-2 text-sm font-medium text-gray-700">
+        Category <span class="text-red-600">*</span>
+    </label>
+    <select name="category" id="ld_category" onchange="calculateAmount()" data-required="true"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        
+        <option value="">Select category</option>
+        
+        <option value="Goods (Offloading) - N7000" data-amount="7000">Goods (Offloading) - N7000</option>
+        <option data-amount="15000" value="Goods (Offloading) - N15000">Goods (Offloading) - N15000</option>
+        <option data-amount="20000" value="Goods (Offloading) - N20000">Goods (Offloading) - N20000</option>
+        <option data-amount="30000" value="Goods (Offloading) - N30000">Goods (Offloading) - N30000</option>
+        <option data-amount="20000" value="Goods (Loading) - N20000">Goods (Loading) - N20000</option>
+        
+        <option data-amount="2500" value="Fruits (Offloading) - N2500">Fruits (Offloading) - N2500</option>
+        <option data-amount="3500" value="Fruits (Offloading) - N3500">Fruits (Offloading) - N3500</option>
+        <option data-amount="7000" value="Fruits (Offloading) - N7000">Fruits (Offloading) - N7000</option>
+        <option data-amount="15000" value="Fruits (Offloading) - N15000">Fruits (Offloading) - N15000</option>
+        
+        <option data-amount="3500" value="Apple Bus (Loading) - N3500">Apple Bus (Loading) - N3500</option>
+        <option data-amount="7000" value="Cargo Truck (Loading) - N7000">Cargo Truck (Loading) - N7000</option>
+        <option data-amount="15000" value="Cargo Truck 1 (Offloading) - N15000">Cargo Truck 1 (Offloading) - N15000</option>
+        <option data-amount="20000" value="Cargo Truck 2 (Offloading) - N20000">Cargo Truck 2 (Offloading) - N20000</option>
+        <option data-amount="20000" value="OK Truck (Offloading) - N20000">OK Truck (Offloading) - N20000</option>
+        
+        <option data-amount="15000" value="20 feet container - (Loading) - N15000">20 feet container - (Loading) - N15000</option>
+        <option data-amount="15000" value="20 feet container - (Offloading) - N15000">20 feet container - (Offloading) - N15000</option>
+        
+        <option data-amount="30000" value="40 feet container - (Offloading) N30000">40 feet container - (Offloading) N30000</option>
+        <option data-amount="30000" value="40 feet container - (Abassa Offloading - Weekend) - N30000">40 feet container - (Abassa Offloading - Weekend) - N30000</option>
+        <option data-amount="60000" value="40 feet container - (Shoe Offloading - Weekend) - N60000">40 feet container - (Shoe Offloading - Weekend) - N60000</option>
+        <option data-amount="30000" value="40 feet container - (Apple Offloading) - N30000">40 feet container - (Apple Offloading) - N30000</option>
+        <option data-amount="60000" value="40 feet container - (Apple Offloading - Sunday) - N60000">40 feet container - (Apple Offloading - Sunday) - N60000</option>
+        <option data-amount="30000" value="40 feet container - (Ok, Curtain Offloading) - N30000">40 feet container - (Ok, Curtain Offloading) - N30000</option>
+        
+        <option data-amount="4000" value="LT Buses (Offloading) - N4000">LT Buses (Offloading) - N4000</option>
+        <option data-amount="7000" value="LT Buses (Offloading - Sunday) - N7000">LT Buses (Offloading - Sunday) - N7000</option>
+        <option data-amount="4000" value="LT Buses (Loading) - N4000">LT Buses (Loading) - N4000</option>
+        
+        <option data-amount="3000" value="Mini LT Buses (Loading) - N3000">Mini LT Buses (Loading) - N3000</option>
+        <option data-amount="3000" value="Mini LT Buses (Offloading) - N3000">Mini LT Buses (Offloading) - N3000</option>
+        
+        <option data-amount="1000" value="LT Buses Army Staff (Loading) - N1000">LT Buses Army Staff (Loading) - N1000</option>
+        <option data-amount="2000" value="LT Buses Army Staff (Loading) - N2000">LT Buses Army Staff (Loading) - N2000</option>
+        
+        <option data-amount="5000" value="Mini Van (Loading) - N5000">Mini Van (Loading) - N5000</option>
+        <option data-amount="5000" value="Mini Van (Offloading) - N5000">Mini Van (Offloading) - N5000</option>
+        <option data-amount="6000" value="OK Mini Van (Loading) - N6000">OK Mini Van (Loading) - N6000</option>
+        <option data-amount="6000" value="OK Mini Van (Offloading) - N6000">OK Mini Van (Offloading) - N6000</option>
+        
+        <option data-amount="2000" value="Sienna Buses (Loading) - N2000">Sienna Buses (Loading) - N2000</option>
+        <option data-amount="30000" value="Oil Tanker (Offloading) - N30000">Oil Tanker (Offloading) - N30000</option>
+        
+    </select>
+</div>
+                        <!-- No. of Days and Plate No -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    No. of Days <span class="text-red-600">*</span>
+                                </label>
+                                <input type="number" name="no_of_days" id="ld_days" min="1" value="1"
+                                    onchange="calculateAmount()" data-required="true"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
 
-                    <!-- No. of Days and Plate No -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                            No. of Days <span class="text-red-600">*</span>
-                        </label>
-                        <input 
-                            type="number" 
-                            name="no_of_days" 
-                            id="ld_days" 
-                            min="1" 
-                            value="1" 
-                            onchange="calculateAmount()" 
-                            data-required="true"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700">
+                                    Plate No <span class="text-red-600">*</span>
+                                </label>
+                                <input type="text" name="plate_no" id="ld_plate" maxlength="8" data-required="true"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
                         </div>
 
-                        <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                            Plate No <span class="text-red-600">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            name="plate_no" 
-                            id="ld_plate" 
-                            maxlength="8" 
-                            data-required="true"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
+                        <!-- Amount -->
+                        <div class="mt-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Amount <span class="text-red-600">*</span>
+                            </label>
+                            <input type="number" name="amount_paid" id="loading_amount" step="0.01" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
-                    </div>
 
-                    <!-- Amount -->
-                    <div class="mt-6">
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Amount <span class="text-red-600">*</span>
-                        </label>
-                        <input 
-                        type="number" 
-                        name="amount_paid" 
-                        id="ld_amount" 
-                        step="0.01" 
-                        readonly 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                    </div>
-
-                    <!-- Transaction Description -->
-                    <div class="mt-6">
-                        <label class="block mb-2 text-sm font-medium text-gray-700">
-                        Transaction Description
-                        </label>
-                        <textarea 
-                        name="transaction_descr" 
-                        id="ld_desc" 
-                        rows="2" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >Loading & Offloading Charges</textarea>
-                    </div>
                     </div>
 
                     <!-- Daily Trade Form -->
@@ -633,6 +940,42 @@ $scroll_boards = $db->resultSet();
                             <label class="block mb-2 font-bold text-gray-800">Transaction Description</label>
                             <textarea name="transaction_descr" id="dt_desc" rows="2"
                                 class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">Daily Trade Permit</textarea>
+                        </div>
+                    </div>
+
+                     <!-- Daily Trade Arrears Form -->
+                    <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="form_daily_trade_arrears">
+                        <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">Daily Trade Arrears
+                            Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="mb-4">
+                                <label class="block mb-2 font-bold text-gray-800">Ticket Category <span
+                                        class="text-red-600">*</span></label>
+                                <select name="daily_trade_a_ticket" id="daily_trade_a_ticket_category" onchange="calculateAmount()"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
+                                    <option value="300">&#8358;300</option>
+                                    <option value="500">&#8358;500</option>
+                                    <option value="700">&#8358;700</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block mb-2 font-bold text-gray-800">No of Tickets <span
+                                        class="text-red-600">*</span></label>
+                                <input type="number" name="daily_trade_a_no_of_tickets" id="daily_trade_a_no_tickets" min="1"
+                                    onchange="calculateAmount()"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2 font-bold text-gray-800">Amount <span
+                                    class="text-red-600">*</span></label>
+                            <input type="number" name="daily_trade_a_amount_paid" id="daily_trade_a_amount" step="0.01" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-sm">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2 font-bold text-gray-800">Transaction Description</label>
+                            <textarea name="daily_trade_a_transaction_descr" id="dt_desc" rows="2"
+                                class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">Daily Trade Arrears Permit</textarea>
                         </div>
                     </div>
 
@@ -819,22 +1162,10 @@ $scroll_boards = $db->resultSet();
                         </div>
                     </div>
 
-                    <!-- General/Other Form -->
-                    <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="form_general">
-                        <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">
-                            General/Other Income</h3>
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Amount <span
-                                    class="text-red-600">*</span></label>
-                            <input type="number" name="amount_paid" id="gen_amount" step="0.01" min="0"
-                                class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">
-                        </div>
-                        <div class="mb-4">
-                            <label class="block mb-2 font-bold text-gray-800">Transaction Description <span class="text-red-600">*</span></label>
-                            <textarea name="transaction_descr" id="gen_desc" rows="3" placeholder="Describe the transaction in detail" data-required="true" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm"></textarea>
-                        </div>
-                    </div>
-
+                   
+                     <?php if ($staff['department'] === 'Wealth Creation' && $current_remittance_balance['unposted'] <= 0): ?>
+                        <p class="text-red-600 font-medium">You do not have any unposted remittances for today.</p>
+                    <?php else: ?>
                     <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md text-center"
                         id="submit_section">
                         <button type="submit" name="btn_post_transaction"
@@ -842,6 +1173,7 @@ $scroll_boards = $db->resultSet();
                             POST TRANSACTION
                         </button>
                     </div>
+                    <?php endif; ?>
                 </form>
             </section>
 
@@ -850,105 +1182,107 @@ $scroll_boards = $db->resultSet();
 
     <script>
     let currentIncomeLine = '';
-        function selectIncomeLine(incomeLine) {
-            currentIncomeLine = incomeLine;
 
-            currentIncomeLine = incomeLine;
+    function selectIncomeLine(incomeLine) {
+        currentIncomeLine = incomeLine;
 
-            // Define aliases just like you'd do with PHP conditions
-            var aliasMap = {
-                'car_park': 'car_park',
-                'daily_trade': 'daily_trade',
-                'daily_trade_arrears': 'daily_trade_arrears',
-                'hawkers_ticket': 'hawkers_ticket',
-                'wheel_barrow_ticket': 'wheel_barrow_ticket',
-                'car_loading': 'car_loading',
-                'Cleaning Fee': 'Cleaning Fee',
-                'Fruit Offloading': 'offloading_fruit',
-                'Ok Loading - Offloading': 'ok_loading_offloading',
-                'Parking Store': 'Parking Store',
-                'Pallet Loading': 'pallet',
-                'Offloading Truck': 'offloading_truck',
-                'offloading': 'offloading',
-                'overnight_parking': 'overnight_parking',
-                'toilet_collection': 'toilet_collection',
-                'Abattoir': 'abattoir',
-                'Wealth Creation Funds Account':'wc_funds_ac',
-                'KClamp (New Space)': 'kclamp',
-                'Car Park Ticket': 'carpark',
-                'Application Form':	'application_form',
-                'Car Sticker': 	'car_sticker',
-                'Taxi Operators (Renewal)': 'taxi_operators',
-                'Toilet Collection': 'toilet_collection',
-                'Key Replacement': 'key_replacement',
-                'Other Loading - Offloading': 'goods_loading_offloading',
-                'Food Seller Permit':'food_seller_permit',
-                'Retailers Monthly Due':'retailers_due',
-                'WheelBarrow Ticket': 'wheelbarrow',
-                'Work Permit': 	'work_permit',
-                'Trade Permit':	'trade_permit'           
-                // add more mappings as needed
-            };
+        // Define aliases just like you'd do with PHP conditions
+        var aliasMap = {
+            'car_park': 'car_park',
+            'daily_trade': 'daily_trade',
+            'daily_trade_arrears': 'daily_trade_arrears',
+            'hawkers_ticket': 'hawkers_ticket',
+            'wheel_barrow_ticket': 'wheel_barrow_ticket',
+            'other_pos':'other_pos',
+            'car_loading': 'car_loading',
+            'loading': 'loading',
+            'Cleaning Fee': 'Cleaning Fee',
+            'Fruit Offloading': 'offloading_fruit',
+            'Ok Loading - Offloading': 'ok_loading_offloading',
+            'Parking Store': 'Parking Store',
+            'Pallet Loading': 'pallet',
+            'Offloading Truck': 'offloading_truck',
+            'offloading': 'offloading',
+            'overnight_parking': 'overnight_parking',
+            'toilet_collection': 'toilet_collection',
+            'Abattoir': 'abattoir',
+            'Wealth Creation Funds Account': 'wc_funds_ac',
+            'KClamp (New Space)': 'kclamp',
+            'Car Park Ticket': 'carpark',
+            'Application Form': 'application_form',
+            'car_sticker': 'car_sticker',
+            'Taxi Operators (Renewal)': 'taxi_operators',
+            'Toilet Collection': 'toilet_collection',
+            'Key Replacement': 'key_replacement',
+            'Other Loading - Offloading': 'goods_loading_offloading',
+            'Food Seller Permit': 'food_seller_permit',
+            'Retailers Monthly Due': 'retailers_due',
+            'WheelBarrow Ticket': 'wheelbarrow',
+            'Work Permit': 'work_permit',
+            'Trade Permit': 'trade_permit'
+            // add more mappings as needed
+        };
 
-            // Get alias from the map (default to incomeLine if not found)
-            var alias = aliasMap[incomeLine] || incomeLine;
-            var aliasField = document.getElementById('credit_account_wc');
-            if (aliasField) {
-                aliasField.value = alias;
-            }
-
-            document.getElementById('income_line_type').value = incomeLine;
-            //document.getElementById('credit_account_wc').value = incomeLine;
-            document.getElementById('income_line').value = incomeLine;
-
-            // Reset all cards' appearance
-            document.querySelectorAll('.income-line-card').forEach(card => {
-                card.classList.remove('bg-gradient-to-br', 'from-pink-400', 'to-red-500', 'border-4', 'border-white');
-                card.classList.add('bg-gradient-to-br', 'from-blue-500', 'to-purple-600');
-            });
-
-            // Highlight selected card
-            const selectedCard = document.querySelector(`[data-income-line="${incomeLine}"]`);
-            if (selectedCard) {
-                selectedCard.classList.remove('from-blue-500', 'to-purple-600');
-                selectedCard.classList.add('from-pink-400', 'to-red-500', 'border-4', 'border-white');
-            }
-
-            // Hide all form sections and disable their inputs
-            document.querySelectorAll('.form-section').forEach(section => {
-                section.classList.add('hidden');
-                section.querySelectorAll('input, select, textarea').forEach(el => {
-                    el.disabled = true;
-                    el.removeAttribute('required'); // remove required from hidden elements
-                });
-            });
-
-            // Show selected form and enable its inputs
-            const activeSection = document.getElementById(`form_${incomeLine}`);
-            if (activeSection) {
-                activeSection.classList.remove('hidden');
-                activeSection.querySelectorAll('input, select, textarea').forEach(el => {
-                    el.disabled = false;
-                    // restore required if marked as data-required="true"
-                    if (el.getAttribute('data-required') === 'true') {
-                        el.setAttribute('required', 'required');
-                    }
-                });
-            }
-
-            // Always show the common and submit sections
-            const commonFields = document.getElementById('common_fields');
-            const submitSection = document.getElementById('submit_section');
-            if (commonFields) {
-                commonFields.classList.remove('hidden');
-                commonFields.querySelectorAll('input, select, textarea').forEach(el => {
-                    el.disabled = false;
-                });
-            }
-            if (submitSection) {
-                submitSection.classList.remove('hidden');
-            }
+        // Get alias from the map (default to incomeLine if not found)
+        var alias = aliasMap[incomeLine] || incomeLine;
+        var aliasField = document.getElementById('credit_account_wc');
+        if (aliasField) {
+            aliasField.value = alias;
         }
+
+        document.getElementById('income_line_type').value = incomeLine; //e.g general
+        //document.getElementById('credit_account_wc').value = incomeLine;
+        document.getElementById('income_line').value = incomeLine;  //specific like 
+
+        // Reset all cards' appearance
+        document.querySelectorAll('.income-line-card').forEach(card => {
+            card.classList.remove('bg-gradient-to-br', 'from-pink-400', 'to-red-500', 'border-4',
+                'border-white');
+            card.classList.add('bg-gradient-to-br', 'from-blue-500', 'to-purple-600');
+        });
+
+        // Highlight selected card
+        const selectedCard = document.querySelector(`[data-income-line="${incomeLine}"]`);
+        if (selectedCard) {
+            selectedCard.classList.remove('from-blue-500', 'to-purple-600');
+            selectedCard.classList.add('from-pink-400', 'to-red-500', 'border-4', 'border-white');
+        }
+
+        // Hide all form sections and disable their inputs
+        document.querySelectorAll('.form-section').forEach(section => {
+            section.classList.add('hidden');
+            section.querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = true;
+                el.removeAttribute('required'); // remove required from hidden elements
+            });
+        });
+
+        // Show selected form and enable its inputs
+        const activeSection = document.getElementById(`form_${incomeLine}`);
+        if (activeSection) {
+            activeSection.classList.remove('hidden');
+            activeSection.querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = false;
+                // restore required if marked as data-required="true"
+                if (el.getAttribute('data-required') === 'true') {
+                    el.setAttribute('required', 'required');
+                }
+            });
+        }
+
+        // Always show the common and submit sections
+        const commonFields = document.getElementById('common_fields');
+        const submitSection = document.getElementById('submit_section');
+        if (commonFields) {
+            commonFields.classList.remove('hidden');
+            commonFields.querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = false;
+            });
+        }
+        if (submitSection) {
+            submitSection.classList.remove('hidden');
+        }
+    }
 
 
     document.getElementById('credit_account').addEventListener('change', function() {
@@ -966,17 +1300,42 @@ $scroll_boards = $db->resultSet();
             document.getElementById('cp_amount').value = (ticketPrice * tickets).toFixed(2);
         }
 
-        if (incomeLine === 'loading') {
-            const category = document.getElementById('ld_category');
-            const amount = parseFloat(category.options[category.selectedIndex]?.getAttribute('data-amount')) || 0;
-            const days = parseInt(document.getElementById('ld_days').value) || 1;
-            document.getElementById('ld_amount').value = (amount * days).toFixed(2);
+        if (incomeLine === 'car_loading') {
+            const ticketPrice = parseFloat(document.getElementById('cl_ticket').value) || 0;
+            document.getElementById('cl_amount').value = (1000 * ticketPrice ).toFixed(2);
         }
+
+         if (incomeLine === 'other_pos') {
+            const ticketPrice = parseFloat(document.getElementById('op_ticket').value) || 0;
+            document.getElementById('op_amount').value = (300 * ticketPrice ).toFixed(2);
+        }
+
+      if (incomeLine === 'loading') {
+    // 1. Get the select element
+    const category = document.getElementById('ld_category');
+    // 2. Safely retrieve the numerical value from the 'data-amount' attribute
+    const selectedOption = category.options[category.selectedIndex];
+
+    const amount = parseFloat(selectedOption?.getAttribute('data-amount')) || 0; // If data-amount is not found, amount will be 0
+
+    // 3. Get the number of days, defaulting to 1
+    const days = parseInt(document.getElementById('ld_days').value) || 1;
+                console.log(days);
+
+    // 4. Calculate and set the amount
+    document.getElementById('loading_amount').value = (amount * days).toFixed(2);
+}
 
         if (incomeLine === 'daily_trade') {
             const ticketPrice = parseFloat(document.getElementById('dt_ticket').value) || 0;
             const tickets = parseInt(document.getElementById('dt_tickets').value) || 0;
             document.getElementById('dt_amount').value = (ticketPrice * tickets).toFixed(2);
+        }
+
+        if (incomeLine === 'daily_trade_arrears') {
+            const ticketPrice = parseFloat(document.getElementById('daily_trade_a_ticket_category').value) || 0;
+            const tickets = parseInt(document.getElementById('daily_trade_a_no_tickets').value) || 0;
+            document.getElementById('daily_trade_a_amount').value = (ticketPrice * tickets).toFixed(2);
         }
 
         if (incomeLine === 'overnight_parking') {
@@ -1010,11 +1369,11 @@ $scroll_boards = $db->resultSet();
     selectIncomeLine('<?php echo $selected_income_line; ?>');
     <?php endif; ?>
 
-        <?php if ($posting_officer_dept == "Wealth Creation"): ?>
-        document.querySelectorAll('input[name="amount_paid"]').forEach(input => {
-            input.addEventListener('change', function() {
-                const amountPaid = parseFloat(this.value) || 0;
-                const remittanceBalance = <?php echo $current_remittance_balance['unposted']; ?>;
+    <?php if ($posting_officer_dept == "Wealth Creation"): ?>
+    document.querySelectorAll('input[name="amount_paid"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const amountPaid = parseFloat(this.value) || 0;
+            const remittanceBalance = <?php echo $current_remittance_balance['unposted']; ?>;
 
             if (amountPaid > remittanceBalance) {
                 alert('WARNING: Amount (₦' + amountPaid.toFixed(2) + ') exceeds remittance balance (₦' +

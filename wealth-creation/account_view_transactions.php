@@ -10,10 +10,9 @@ requireLogin();
 $userId = $_SESSION['user_id'];
 $db = $databaseObj;
 $user = new User($databaseObj);
-$staff = $user->getUserStaffDetail($userId);;
+$staff = $user->getUserStaffDetail($userId);
 $manager = new TransactionManager($databaseObj);
 $stats = $manager->getDashboardStats();
-
 // Check permissions
 if (!$manager->checkUserPermissions($staff['user_id'], 'acct_view_record')) {
     header('Location: unauthorized.php');
@@ -27,6 +26,8 @@ $per_page = 20;
 $date_from = null;
 $date_to = null;
 $status_filter = isset($_GET['status']) ? $_GET['status'] : null;
+// print_r($status_filter);
+// exit;
 
 if (isset($_GET['date_from']) && isset($_GET['date_to'])) {
     $date_from = $_GET['date_from'];
@@ -51,19 +52,25 @@ $total_pages = ceil($total_count / $per_page);
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');
-    
+
     $response = ['success' => false, 'message' => 'Invalid action'];
     
     switch ($_POST['action']) {
         case 'approve':
             $transaction_id = $_POST['transaction_id'];
-            $response = $manager->approveTransaction($transaction_id, $staff['user_id'], $staff['full_name'], $staff['department']);
+            $response = $manager->approveTransaction($transaction_id, $staff['user_id'], $staff['full_name'], $staff['department'], $staff['level']);
             break;
             
+        case 'flagged':
+            $transaction_id = $_POST['transaction_id'];
+            $reason = isset($_POST['reason']) ? $_POST['reason'] : '';
+            $response = $manager->flaggedTransaction($transaction_id, $staff['user_id'], $staff['full_name'], $reason);
+            break;
+
         case 'decline':
             $transaction_id = $_POST['transaction_id'];
             $reason = isset($_POST['reason']) ? $_POST['reason'] : '';
-            $response = $manager->declineTransaction($transaction_id, $staff['user_id'], $staff['full_name'], $staff['department'], $reason);
+            $response = $manager->declineTransaction($transaction_id, $staff['user_id'], $staff['full_name'], $staff['department'], $staff['level'], $reason);
             break;
             
         case 'bulk_approve':
@@ -74,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             : [];
 
             if (!empty($transaction_ids)) {
-                $response = $manager->bulkApproveTransactions($transaction_ids, $staff['user_id'], $staff['full_name'], $staff['department']);
+                $response = $manager->bulkApproveTransactions($transaction_ids, $staff['user_id'], $staff['full_name'], $staff['department'], $staff['level']);
             } else {
                 $response = ['success' => false, 'message' => 'No transactions selected'];
             }
@@ -124,65 +131,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <!-- Navigation -->
     <?php include('include/header.php'); ?>
     <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Dashboard Stats -->
-        <!-- <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Pending Posts</p>
-                        <p class="text-2xl font-bold text-gray-900"><?php //echo number_format($stats['pending_posts']); ?></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-orange-100 text-orange-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">FC Approvals</p>
-                        <p class="text-2xl font-bold text-gray-900"><?php //echo number_format($stats['pending_fc_approvals']); ?></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100 text-green-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Audit Verifications</p>
-                        <p class="text-2xl font-bold text-gray-900"><?php //echo number_format($stats['pending_audit_verifications']); ?></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-red-100 text-red-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Declined</p>
-                        <p class="text-2xl font-bold text-gray-900"><?php //echo number_format($stats['declined_transactions']); ?></p>
-                    </div>
-                </div>
-            </div>
-        </div> -->
-
         <!-- Filters and Search -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -206,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             Filter Range
                         </button>
-                        <a href="view_transactions.php" class="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        <a href="account_view_transactions.php" class="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                             Clear
                         </a>
                     </div>
@@ -227,19 +175,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             <!-- Status Filter Tabs -->
             <div class="mt-4 flex flex-wrap gap-2">
-                <a href="view_transactions.php" 
+                <a href="account_view_transactions.php" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo !$status_filter ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     All Transactions
                 </a>
-                <a href="view_transactions.php?status=pending" 
+                <a href="account_view_transactions.php?status=pending" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     FC Pending
                 </a>
-                <a href="view_transactions.php?status=approved" 
+                <a href="account_view_transactions.php?status=approved" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'approved' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     Approved
                 </a>
-                <a href="view_transactions.php?status=declined" 
+                <a href="account_view_transactions.php?status=declined" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'declined' ? 'bg-red-100 text-red-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     Declined
                 </a>
@@ -311,8 +259,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             <?php foreach ($transactions as $index => $transaction): ?>
                             <tr class="hover:bg-gray-50 transaction-row" data-id="<?php echo $transaction['id']; ?>">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <?php if (($transaction['approval_status'] === 'Pending' && ($staff['department'] === 'Accounts' || $staff['department'] === 'FC')) || 
-                                              ($transaction['verification_status'] === 'Pending' && $staff['department'] === 'Audit/Inspections')): ?>
+                                    <?php if (($transaction['leasing_post_status'] === 'Pending' && ($staff['department'] === 'Accounts') ) ||
+                                              ($transaction['approval_status'] === 'Pending' || $transaction['approval_status'] === '' && ( $staff['level'] === 'fc')) || 
+                                              ($transaction['verification_status'] === 'Pending' || $transaction['verification_status'] === '' && $staff['department'] === 'Audit/Inspections')): ?>
                                     <input type="checkbox" class="transaction-checkbox rounded border-gray-300 text-blue-600" 
                                            value="<?php echo $transaction['id']; ?>">
                                     <?php endif; ?>
@@ -424,8 +373,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 <!-- Authorization Actions -->
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <div class="flex justify-center space-x-2">
-                                        <?php if ($staff['department'] === 'Accounts' || $staff['department'] === 'fc'): ?>
-                                            <?php if ($transaction['approval_status'] === 'Pending'): ?>
+                                        <?php if ($staff['department'] === 'Accounts' && $staff['level'] != 'fc'): ?>
+                                            <?php if ($transaction['leasing_post_status'] === 'Pending'): ?>
+                                                <button onclick="approveTransaction('<?php echo $transaction['id']; ?>')" 
+                                                        class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                                                    Approve
+                                                </button>
+                                                <button onclick="declineTransaction('<?php echo $transaction['id']; ?>')" 
+                                                        class="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
+                                                    Decline
+                                                </button>
+                                            <?php elseif ($transaction['leasing_post_status'] === 'Declined'): ?>
+                                                <button onclick="approveTransaction('<?php echo $transaction['id']; ?>')" 
+                                                        class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                                                    Re-approve
+                                                </button>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                        <?php if ($staff['department'] === 'Accounts' && $staff['level'] === 'fc'): ?>
+                                            <?php if ($transaction['leasing_post_status'] === 'Approved' && $transaction['approval_status'] === 'Pending' || $transaction['approval_status'] === ''): ?>
                                                 <button onclick="approveTransaction('<?php echo $transaction['id']; ?>')" 
                                                         class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
                                                     Approve
@@ -443,7 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                         <?php endif; ?>
                                         
                                         <?php if ($staff['department'] === 'Audit/Inspections'): ?>
-                                            <?php if ($transaction['approval_status'] === 'Approved' && $transaction['verification_status'] === 'Pending'): ?>
+                                            <?php if ($transaction['approval_status'] === 'Approved' && $transaction['verification_status'] === 'Pending' || $transaction['verification_status'] === ''): ?>
                                                 <button onclick="verifyTransaction('<?php echo $transaction['id']; ?>')" 
                                                         class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
                                                     Verify
@@ -469,6 +435,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 </td>
                                 <td colspan="4" class="px-6 py-2 text-xs text-gray-600 text-right">
                                     Posted by: <strong><?php echo $transaction['posting_officer_full_name']; ?></strong>
+                                    <?php if ($transaction['leasing_post_approving_officer_name']): ?>
+                                        | Reviewed by: <strong><?php echo $transaction['leasing_post_approving_officer_name']; ?></strong>
+                                    <?php endif; ?>
                                     <?php if ($transaction['approving_acct_officer_name']): ?>
                                         | Approved by: <strong><?php echo $transaction['approving_acct_officer_name']; ?></strong>
                                     <?php endif; ?>
@@ -804,6 +773,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }).then((result) => {
                 if (result.isConfirmed) {
                     performAction('decline', transactionId);
+                }
+            });
+        }
+
+        function flagTransaction(transactionId) {
+            Swal.fire({
+                title: 'Flag Transaction',
+                text: 'This record will be Flagged for error!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Flag!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    performAction('flagged', transactionId);
                 }
             });
         }

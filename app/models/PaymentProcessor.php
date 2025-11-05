@@ -768,9 +768,6 @@ class PaymentProcessor
                 $credit_account_info = $this->db->single();
                 
             }
-
-            var_dump($data['credit_account']);
-            exit();
          
             if (!$debit_account_info || !$credit_account_info) {
                 return ['success' => false, 'message' => 'Invalid account selection'];

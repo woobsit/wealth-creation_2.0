@@ -464,7 +464,7 @@ class PaymentProcessor
             $errors[] = 'The remitting staff name is required';
         }
 
-        if ($data['income_line_type'] == "car_park") {
+        if ($data['income_line_type'] == "carpark") {
             if (empty($data['category'])) {
                 $errors[] = 'Please select category';
             }
@@ -557,7 +557,7 @@ class PaymentProcessor
             $errors[] = 'Amount must be a valid number and greater than 0.';
         }
 
-        if ($data['income_line_type'] !== "car_sticker" && $data['income_line_type'] !== "car_park" && $data['income_line_type'] !== "loading" && $data['income_line_type'] !== "overnight_parking") {
+        if ($data['income_line_type'] !== "car_sticker" && $data['income_line_type'] !== "carpark" && $data['income_line_type'] !== "loading" && $data['income_line_type'] !== "overnight_parking") {
             if (empty($data['transaction_desc'])) {
                 $errors[] = 'Transaction description is required';
             }
@@ -571,7 +571,8 @@ class PaymentProcessor
             $errors[] = 'Credit account (income line) is required';
         }
 
-
+// var_dump($data['debit_account']);
+// exit();
 
         if ($data['posting_officer_dept'] == 'Wealth Creation' && !empty($data['remit_id'])) {
             $balance = $this->getRemittanceBalance($data['posting_officer_id'], $data['current_date']);
@@ -760,6 +761,17 @@ class PaymentProcessor
             $debit_account_info = $this->getAccountInfo($data['debit_account']);
             $credit_account_info = $this->getAccountInfo($data['credit_account']);
 
+            if(!$credit_account_info){
+               $this->db->query("SELECT acct_id, acct_table_name, acct_desc FROM accounts WHERE acct_alias = :identifier");
+
+                $this->db->bind(':identifier', $data['credit_account']);
+                $credit_account_info = $this->db->single();
+                
+            }
+
+            var_dump($data['credit_account']);
+            exit();
+         
             if (!$debit_account_info || !$credit_account_info) {
                 return ['success' => false, 'message' => 'Invalid account selection'];
             }

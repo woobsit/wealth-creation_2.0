@@ -99,7 +99,7 @@ try {
             case 'car_loading':
                 $incomeLineOutput = 'Car Loading';
                 break;
-            case 'car_park':
+            case 'carpark':
                 $incomeLineOutput = 'Car Park';
                 break;
             case 'hawkers':

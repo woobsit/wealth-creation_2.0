@@ -3653,7 +3653,7 @@ if(isset($_GET["income_line"])) {
 
 <?php	
 //Car Park	
-	} elseif ($income_line == "car_park") {
+	} elseif ($income_line == "carpark") {
 		$alias = "carpark";
 		$income_line_desc = "Car Park Tickets";
 		$transaction_descr = $income_line_desc;
@@ -4047,7 +4047,7 @@ include ('include/staff_navbar.php');
 						<td><a href="payments.php?income_line=car_loading" oncontextmenu="return false;">Car Loading Ticket</a></td>
 					</tr>
 					<tr>
-						<td><a href="payments.php?income_line=car_park" oncontextmenu="return false;">Car Park Ticket</a></td>
+						<td><a href="payments.php?income_line=carpark" oncontextmenu="return false;">Car Park Ticket</a></td>
 					</tr>
 					<tr>
 						<td><a href="payments.php?income_line=hawkers" oncontextmenu="return false;">Hawkers Ticket</a></td>
@@ -4281,8 +4281,8 @@ include ('include/staff_navbar.php');
 									include 'payments/abattoir_form_inc.php';
 								} elseif ($income_line == "car_loading") {
 									include 'payments/car_loading_form_inc.php';
-								} elseif ($income_line == "car_park") {
-									include 'payments/car_park_form_inc.php';
+								} elseif ($income_line == "carpark") {
+									include 'payments/carpark_form_inc.php';
 								} elseif ($income_line == "hawkers") {
 									include 'payments/hawkers_form_inc.php';
 								} elseif ($income_line == "wheelbarrow") {

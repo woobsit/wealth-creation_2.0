@@ -41,6 +41,10 @@ $income_lines = $db->resultSet();
 $db->query("SELECT * FROM accounts WHERE page_visibility = 'General' AND active = 'Yes' ORDER BY acct_desc ASC");
 $incs = $db->resultSet();
 
+$db->query("SELECT * FROM accounts WHERE page_visibility = 'Loading' AND active = 'Yes' ORDER BY acct_desc ASC");
+$incs_loading = $db->resultSet();
+
+
 // $db->query("SELECT * FROM accounts WHERE active = 'Yes' AND ( acct_desc = 'Account Till' OR acct_desc = 'Wealth Creation Funds Account' ) ORDER BY acct_desc ASC");
 // $all_accounts = $db->resultSet();
 
@@ -941,6 +945,33 @@ $scroll_boards = $db->resultSet();
 
                             </select>
                         </div>
+                          <?php if ($_SESSION['department'] == "Wealth Creation" || $staff["level"] == "ce") : ?>
+
+                    <div class="mb-4">
+                            <label class="block mb-2 font-bold  text-gray-700">
+                                Income Line <span class="text-red-600">*</span>
+                            </label>
+
+                            <select name="credit_account_wc" data-required="true"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select an income line</option>
+                                
+                                    <?php foreach ($incs_loading as $acc_loading): ?>
+                                            <?php
+                                            // Define the option's value
+                                            $option_value = $acc_loading['acct_id'];
+                                            ?>
+                                            <option value="<?php echo $option_value; ?>"
+                                                data-desc="<?php echo htmlspecialchars($acc_loading['acct_desc']); ?>">
+                                                <?php echo htmlspecialchars($acc_loading['acct_desc']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+
+                            </select>
+                        </div>
+
+
+
                         <!-- No. of Days and Plate No -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                             <div>
@@ -971,7 +1002,7 @@ $scroll_boards = $db->resultSet();
                         </div>
 
                     </div>
-
+                        <?php endif; ?>
                     <!-- Daily Trade Form -->
                     <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="form_daily_trade">
                         <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">Daily Trade

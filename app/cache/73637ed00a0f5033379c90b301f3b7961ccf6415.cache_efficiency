@@ -1,1 +1,1 @@
-a:9:{s:12:"working_days";i:1;s:18:"total_transactions";i:1;s:12:"total_amount";d:1000;s:22:"avg_transaction_amount";d:1000;s:15:"min_transaction";s:4:"1000";s:15:"max_transaction";s:4:"1000";s:15:"attendance_rate";d:3.3333333333333335;s:18:"productivity_score";d:700.3;s:13:"daily_average";d:1000;}
+a:9:{s:12:"working_days";i:0;s:18:"total_transactions";i:0;s:12:"total_amount";i:0;s:22:"avg_transaction_amount";i:0;s:15:"min_transaction";i:0;s:15:"max_transaction";i:0;s:15:"attendance_rate";i:0;s:18:"productivity_score";i:0;s:13:"daily_average";i:0;}

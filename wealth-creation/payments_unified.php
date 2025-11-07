@@ -1168,7 +1168,7 @@ $scroll_boards = $db->resultSet();
                             POST TRANSACTION
                         </button>
                     </div>
-                    <?php endif; ?>
+                    <?php //endif; ?>
                 </form>
             </section>
 

@@ -177,7 +177,7 @@ $scroll_boards = $db->resultSet();
     </div>
     <?php endif; ?>
     <div class="w-full px-4 sm:px-6 lg:px-8 py-8"> 
-    <!-- max-w-7xl mx-auto px-4 py-6 -->
+        <!-- max-w-7xl mx-auto px-4 py-6 -->
         <div class="mb-6">
             <h2 class="text-3xl font-bold text-gray-800 mb-1">New Payment Posting - All Income Lines</h2>
             <p class="text-gray-600">Officer: <strong><?php echo htmlspecialchars($posting_officer_name); ?></strong> |
@@ -191,275 +191,274 @@ $scroll_boards = $db->resultSet();
         </div>
 
         <?php if (!empty($errors)): ?>
-        <div class="bg-red-50 border border-red-400 text-red-800 px-4 py-3 rounded-lg mb-4">
-            <h4 class="font-bold mb-2">Error(s):</h4>
-            <ul class="list-disc list-inside space-y-1">
-                <?php foreach ($errors as $error): ?>
-                <li><?php echo $error; ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+            <div class="bg-red-50 border border-red-400 text-red-800 px-4 py-3 rounded-lg mb-4">
+                <h4 class="font-bold mb-2">Error(s):</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <?php foreach ($errors as $error): ?>
+                    <li><?php echo $error; ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
         <?php endif; ?>
 
         <?php if (isset($_GET['success'])): ?>
-        <div class="bg-green-50 border border-green-400 text-green-800 px-4 py-3 rounded-lg mb-4">
-            <h4 class="font-bold mb-2">Success!</h4>
-            <p><?php echo 'Payment successfully posted for approval!'; ?></p>
-        </div>
+            <div class="bg-green-50 border border-green-400 text-green-800 px-4 py-3 rounded-lg mb-4">
+                <h4 class="font-bold mb-2">Success!</h4>
+                <p><?php echo 'Payment successfully posted for approval!'; ?></p>
+            </div>
         <?php endif; ?>
 
         <!-- Split Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <!-- Left Side - Income Lines -->
-            <aside class="lg:col-span-1 bg-white rounded-xl shadow-md p-5 border border-gray-100 items-start">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa-solid fa-wallet text-blue-600 mr-2"></i> Income Lines
-                </h3>
-                <div id="income-line-cards" class="flex flex-col gap-3">
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="general" onclick="selectIncomeLine('general')">
-                        <div>
-                            <h5 class="text-sm font-bold">General/Other</h5>
-                            <p class="text-xs opacity-90">Miscellaneous</p>
-                        </div>
-                        <i class="fa fa-sack-dollar text-lg opacity-90"></i>
-                    </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="car_park" onclick="selectIncomeLine('car_park')">
-                        <div>
-                            <h5 class="text-sm font-bold">Car Park</h5>
-                            <p class="text-xs opacity-90">Parking Tickets</p>
-                        </div>
-                        <i class="fa fa-car text-lg opacity-90"></i>
-                    </div>
-
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="car_loading" onclick="selectIncomeLine('car_loading')">
-                        <div>
-                            <h5 class="text-sm font-bold">Car Loading</h5>
-                            <p class="text-xs opacity-90">Car Loading Tickets</p>
-                        </div>
-                        <i class="fa fa-car text-lg opacity-90"></i>
-                    </div>
-
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="car_sticker" onclick="selectIncomeLine('car_sticker')">
-                        <div>
-                            <h5 class="text-sm font-bold">Car Sticker</h5>
-                            <p class="text-xs opacity-90">Stickers for Cars</p>
-                        </div>
-                        <i class="fa fa-car text-lg opacity-90"></i>
-                    </div>
-
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="toilet_collection" onclick="selectIncomeLine('toilet_collection')">
-                        <div>
-                            <h5 class="text-sm font-bold">Toilet Collection</h5>
-                            <p class="text-xs opacity-90">Toilet Usage</p>
-                        </div>
-                        <i class="fa fa-car text-lg opacity-90"></i>
-                    </div>
-
-                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="other_pos" onclick="selectIncomeLine('other_pos')">
-                        <div>
-                            <h5 class="text-sm font-bold">Other POS</h5>
-                            <p class="text-xs opacity-90">POS Tickets</p>
-                        </div>
-                        <i class="fa fa-car text-lg opacity-90"></i>
-                    </div>
-
-
-                    
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="loading" onclick="selectIncomeLine('loading')">
-                        <div>
-                            <h5 class="text-sm font-bold">Loading & Offloading</h5>
-                            <p class="text-xs opacity-90">Offloading of Trucks</p>
-                        </div>
-                        <i class="fa fa-truck text-lg opacity-90"></i>
-                    </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="daily_trade" onclick="selectIncomeLine('daily_trade')">
-                        <div>
-                            <h5 class="text-sm font-bold">Daily Trade</h5>
-                            <p class="text-xs opacity-90">Everyday Trade</p>
-                        </div>
-                        <i class="fa fa-store text-lg opacity-90"></i>
-                    </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="daily_trade_arrears" onclick="selectIncomeLine('daily_trade_arrears')">
-                        <div>
-                            <h5 class="text-sm font-bold">Daily Trade Arrears</h5>
-                            <p class="text-xs opacity-90">Everyday Trade Arrears</p>
-                        </div>
-                        <i class="fa fa-store text-lg opacity-90"></i>
-                    </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="hawkers" onclick="selectIncomeLine('hawkers')">
-                        <div>
-                            <h5 class="text-sm font-bold">Hawkers</h5>
-                            <p class="text-xs">Hawker Selling Permits</p>
-                        </div>
-                        <i class="fa fa-person-walking text-lg opacity-90"></i>
-                    </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="wheelbarrow" onclick="selectIncomeLine('wheelbarrow')">
-                        <div>
-                            <h5 class="text-sm font-bold">Wheelbarrow</h5>
-                            <p class="text-xs">Wheelbarrow pushers</p>
-                        </div>
-                        <i class="fa fa-wheelchair text-lg opacity-90"></i>
-                    </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="abattoir" onclick="selectIncomeLine('abattoir')">
-                        <div>
-                            <h5 class="text-sm font-bold">Abattoir</h5>
-                            <p class="text-xs">Slaughter Charges</p>
-                        </div>
-                        <i class="fa fa-drumstick-bite text-lg opacity-90"></i>
-                    </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="overnight_parking" onclick="selectIncomeLine('overnight_parking')">
-                        <div>
-                            <h5 class="text-sm font-bold">Overnight Parking</h5>
-                            <p class="text-xs">Long-term Parking</p>
-                        </div>
-                        <i class="fa fa-parking text-lg opacity-90"></i>
-                    </div>
-                    <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="scroll_board" onclick="selectIncomeLine('scroll_board')">
-                        <div>
-                            <h5 class="text-sm font-bold">Scroll Board</h5>
-                            <p class="text-xs">Advertising</p>
-                        </div>
-                        <i class="fa fa-scroll text-lg opacity-90"></i>
-                    </div>
-
-                </div>
-            </aside>
-
-            <!-- Right Side - Forms -->
-            <section class="lg:col-span-2 bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                <form method="POST" action="" id="payment_form">
-                    <input type="hidden" name="posting_officer_name" value="<?php echo  $posting_officer_name; ?>">
-                    <input type="hidden" name="income_line_type" id="income_line_type" value="">
-                    <input type="hidden" name="posting_officer_dept" value="<?php echo $posting_officer_dept; ?>">
-                    <input type="hidden" name="posting_officer_id" value="<?php echo $user_id; ?>">
-                    <?php if ($posting_officer_dept == "Wealth Creation"): ?>
-                    <input type="hidden" name="remit_id" value="<?php echo $current_remittance_balance['remit_id']; ?>">
-                    <input type="hidden" name="amt_remitted"
-                        value="<?php echo $current_remittance_balance['unposted']; ?>">
-                    <?php endif; ?>
-                     <input type="hidden" class="common-inputs" name="income_line" id="income_line" value="">
-
-                    <div id="default_info_section"
-                        class="form-section p-8 bg-white rounded-xl shadow-lg border-l-4 border-blue-500 animate-fade-in">
-                        <h2 class="text-3xl font-extrabold text-gray-800 mb-4">Welcome to the Income Lines Posting
-                            Portal 💰
-                        </h2>
-                        <hr class="mb-4">
-                        <p class="text-gray-600 mb-6">
-                            To begin posting revenue, please **select an Income Line Card** from the list on the left
-                            (e.g., 'General/Other', 'Car Park', etc.).
-                        </p>
-                        <ul class="space-y-3 text-gray-700 list-disc list-inside">
-                            <li>Each card represents a distinct revenue source and will load a specific form for data
-                                entry.</li>
-                            <li>The **General/Other** card is suitable for miscellaneous or unlisted income types.</li>
-                            <li>Your posting activities will be tracked under your current department.</li>
-                        </ul>
-                        <p class="mt-6 text-sm text-blue-600 font-medium">
-                            Select a card now to reveal the required posting fields and the Submit button.
-                        </p>
-                    </div>
-
-
-                    <!-- Common Fields Section -->
-                    <div id="common_fields"
-                        class="common-inputs form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
-                        <h3
-                            class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
-                            💳 Payment Details
+                    <!-- Left Side - Income Lines -->
+                    <aside class="lg:col-span-1 bg-white rounded-xl shadow-md p-5 border border-gray-100 items-start">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fa-solid fa-wallet text-blue-600 mr-2"></i> Income Lines
                         </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-    <label class="block mb-2 text-sm font-medium text-gray-700">
-        Date of Payment <span class="text-red-600">*</span>
-    </label>
-    <input
-        type="date"
-        name="date_of_payment"
-        value="<?php echo isset($_POST['date_of_payment']) ? $_POST['date_of_payment'] : $current_date; ?>"
-        required
-        class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-    >
-</div>
-
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-gray-700">
-                                    Receipt No <span class="text-red-600">*</span>
-                                </label>
-                                <input type="text" name="receipt_no" 
-                               placeholder="7-digit receipt number"
-                                    pattern="^\d{7}$" maxlength="7" required
-                                    class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <div id="income-line-cards" class="flex flex-col gap-3">
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="general" onclick="selectIncomeLine('general')">
+                                <div>
+                                    <h5 class="text-sm font-bold">General/Other</h5>
+                                    <p class="text-xs opacity-90">Miscellaneous</p>
+                                </div>
+                                <i class="fa fa-sack-dollar text-lg opacity-90"></i>
                             </div>
-                        </div>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="car_park" onclick="selectIncomeLine('car_park')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Car Park</h5>
+                                    <p class="text-xs opacity-90">Parking Tickets</p>
+                                </div>
+                                <i class="fa fa-car text-lg opacity-90"></i>
+                            </div>
 
-                        <!-- Conditional: Remittance -->
-                        <?php if ($posting_officer_dept == 'Wealth Creation' && $current_remittance_balance['unposted'] > 0): ?>
-                        <div class="mt-6">
-                            <label class="block mb-2 text-sm font-medium text-gray-700">Remittance</label>
-                            <select name="remit_id" required
-                                class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                <option value="">Select...</option>
-                                <option value="<?php echo $current_remittance_balance['remit_id']; ?>">
-                                    <?php echo $current_remittance_balance['date'] . ': Remittance - ₦' . number_format($current_remittance_balance['unposted']); ?>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="car_loading" onclick="selectIncomeLine('car_loading')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Car Loading</h5>
+                                    <p class="text-xs opacity-90">Car Loading Tickets</p>
+                                </div>
+                                <i class="fa fa-car text-lg opacity-90"></i>
+                            </div>
+
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="car_sticker" onclick="selectIncomeLine('car_sticker')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Car Sticker</h5>
+                                    <p class="text-xs opacity-90">Stickers for Cars</p>
+                                </div>
+                                <i class="fa fa-car text-lg opacity-90"></i>
+                            </div>
+
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="toilet_collection" onclick="selectIncomeLine('toilet_collection')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Toilet Collection</h5>
+                                    <p class="text-xs opacity-90">Toilet Usage</p>
+                                </div>
+                                <i class="fa fa-car text-lg opacity-90"></i>
+                            </div>
+
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="other_pos" onclick="selectIncomeLine('other_pos')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Other POS</h5>
+                                    <p class="text-xs opacity-90">POS Tickets</p>
+                                </div>
+                                <i class="fa fa-car text-lg opacity-90"></i>
+                            </div>
+
+
+                            
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="loading" onclick="selectIncomeLine('loading')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Loading & Offloading</h5>
+                                    <p class="text-xs opacity-90">Offloading of Trucks</p>
+                                </div>
+                                <i class="fa fa-truck text-lg opacity-90"></i>
+                            </div>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="daily_trade" onclick="selectIncomeLine('daily_trade')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Daily Trade</h5>
+                                    <p class="text-xs opacity-90">Everyday Trade</p>
+                                </div>
+                                <i class="fa fa-store text-lg opacity-90"></i>
+                            </div>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="daily_trade_arrears" onclick="selectIncomeLine('daily_trade_arrears')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Daily Trade Arrears</h5>
+                                    <p class="text-xs opacity-90">Everyday Trade Arrears</p>
+                                </div>
+                                <i class="fa fa-store text-lg opacity-90"></i>
+                            </div>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="hawkers" onclick="selectIncomeLine('hawkers')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Hawkers</h5>
+                                    <p class="text-xs">Hawker Selling Permits</p>
+                                </div>
+                                <i class="fa fa-person-walking text-lg opacity-90"></i>
+                            </div>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="wheelbarrow" onclick="selectIncomeLine('wheelbarrow')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Wheelbarrow</h5>
+                                    <p class="text-xs">Wheelbarrow pushers</p>
+                                </div>
+                                <i class="fa fa-wheelchair text-lg opacity-90"></i>
+                            </div>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="abattoir" onclick="selectIncomeLine('abattoir')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Abattoir</h5>
+                                    <p class="text-xs">Slaughter Charges</p>
+                                </div>
+                                <i class="fa fa-drumstick-bite text-lg opacity-90"></i>
+                            </div>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="overnight_parking" onclick="selectIncomeLine('overnight_parking')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Overnight Parking</h5>
+                                    <p class="text-xs">Long-term Parking</p>
+                                </div>
+                                <i class="fa fa-parking text-lg opacity-90"></i>
+                            </div>
+                            <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
+                                data-income-line="scroll_board" onclick="selectIncomeLine('scroll_board')">
+                                <div>
+                                    <h5 class="text-sm font-bold">Scroll Board</h5>
+                                    <p class="text-xs">Advertising</p>
+                                </div>
+                                <i class="fa fa-scroll text-lg opacity-90"></i>
+                            </div>
+
+                        </div>
+                    </aside>
+
+                    <!-- Right Side - Forms -->
+                    <section class="lg:col-span-2 bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                        <form method="POST" action="" id="payment_form">
+                            <input type="hidden" name="posting_officer_name" value="<?php echo  $posting_officer_name; ?>">
+                            <input type="hidden" name="income_line_type" id="income_line_type" value="">
+                            <input type="hidden" name="posting_officer_dept" value="<?php echo $posting_officer_dept; ?>">
+                            <input type="hidden" name="posting_officer_id" value="<?php echo $user_id; ?>">
+                            <?php if ($posting_officer_dept == "Wealth Creation"): ?>
+                            <input type="hidden" name="remit_id" value="<?php echo $current_remittance_balance['remit_id']; ?>">
+                            <input type="hidden" name="amt_remitted"
+                                value="<?php echo $current_remittance_balance['unposted']; ?>">
+                            <?php endif; ?>
+                            <input type="hidden" class="common-inputs" name="income_line" id="income_line" value="">
+
+                            <div id="default_info_section"
+                                class="form-section p-8 bg-white rounded-xl shadow-lg border-l-4 border-blue-500 animate-fade-in">
+                                <h2 class="text-3xl font-extrabold text-gray-800 mb-4">Welcome to the Income Lines Posting
+                                    Portal 💰
+                                </h2>
+                                <hr class="mb-4">
+                                <p class="text-gray-600 mb-6">
+                                    To begin posting revenue, please **select an Income Line Card** from the list on the left
+                                    (e.g., 'General/Other', 'Car Park', etc.).
+                                </p>
+                                <ul class="space-y-3 text-gray-700 list-disc list-inside">
+                                    <li>Each card represents a distinct revenue source and will load a specific form for data
+                                        entry.</li>
+                                    <li>The **General/Other** card is suitable for miscellaneous or unlisted income types.</li>
+                                    <li>Your posting activities will be tracked under your current department.</li>
+                                </ul>
+                                <p class="mt-6 text-sm text-blue-600 font-medium">
+                                    Select a card now to reveal the required posting fields and the Submit button.
+                                </p>
+                            </div>
+
+
+                            <!-- Common Fields Section -->
+                            <div id="common_fields"
+                                class="common-inputs form-section hidden bg-white p-8 my-6 rounded-xl shadow-lg border border-gray-100">
+                                <h3
+                                    class="text-2xl font-semibold text-gray-800 border-b pb-3 border-blue-500 mb-6 flex items-center gap-2">
+                                    💳 Payment Details
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                                            Date of Payment <span class="text-red-600">*</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="date_of_payment"
+                                            value="<?php echo isset($_POST['date_of_payment']) ? $_POST['date_of_payment'] : $current_date; ?>"
+                                            required
+                                            class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        >
+                                    </div>
+
+                                    <div>
+                                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                                            Receipt No <span class="text-red-600">*</span>
+                                        </label>
+                                        <input type="text" name="receipt_no" 
+                                    placeholder="7-digit receipt number"
+                                            pattern="^\d{7}$" maxlength="7" required
+                                            class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                    </div>
+                                </div>
+
+                                <!-- Conditional: Remittance -->
+                                <?php if ($posting_officer_dept == 'Wealth Creation' && $current_remittance_balance['unposted'] > 0): ?>
+                                <div class="mt-6">
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">Remittance</label>
+                                    <select name="remit_id" required
+                                        class="common-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                        <option value="">Select...</option>
+                                        <option value="<?php echo $current_remittance_balance['remit_id']; ?>">
+                                            <?php echo $current_remittance_balance['date'] . ': Remittance - ₦' . number_format($current_remittance_balance['unposted']); ?>
+                                        </option>
+                                    </select>
+                                </div>
+                                <?php endif; ?>
+
+                                <!-- Row 2: Remitting Staff -->
+                                <div class="mt-6">
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Remitter's Name <span class="text-red-600">*</span>
+                                    </label>
+                                    <select name="remitting_staff" required class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+
+                                <option value=""
+                                    <?php
+                                    // Check if the form was submitted and the selected value is NOT set or is empty.
+                                    // This handles both the default selection and the case where the user didn't select one.
+                                    if (!isset($_POST['remitting_staff']) || $_POST['remitting_staff'] == '') {
+                                        echo 'selected';
+                                    }
+                                    ?>
+                                >Select...</option>
+
+                            <?php foreach ($wc_staff as $staff_member): ?>
+                                <?php
+                                $option_value = $staff_member['user_id'] . '-wc';
+                                $selected = (isset($_POST['remitting_staff']) && $_POST['remitting_staff'] == $option_value) ? 'selected' : '';
+                                ?>
+                                <option value="<?php echo $option_value; ?>" <?php echo $selected; ?>>
+                                    <?php echo $staff_member['full_name']; ?>
                                 </option>
-                            </select>
-                        </div>
-                        <?php endif; ?>
+                            <?php endforeach; ?>
 
-                        <!-- Row 2: Remitting Staff -->
-                        <div class="mt-6">
-                            <label class="block mb-2 text-sm font-medium text-gray-700">
-                                Remitter's Name <span class="text-red-600">*</span>
-                            </label>
-                            <select name="remitting_staff" required class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-
-    <option value=""
-        <?php
-        // Check if the form was submitted and the selected value is NOT set or is empty.
-        // This handles both the default selection and the case where the user didn't select one.
-        if (!isset($_POST['remitting_staff']) || $_POST['remitting_staff'] == '') {
-            echo 'selected';
-        }
-        ?>
-    >Select...</option>
-
-    <?php foreach ($wc_staff as $staff_member): ?>
-        <?php
-        $option_value = $staff_member['user_id'] . '-wc';
-        $selected = (isset($_POST['remitting_staff']) && $_POST['remitting_staff'] == $option_value) ? 'selected' : '';
-        ?>
-        <option value="<?php echo $option_value; ?>" <?php echo $selected; ?>>
-            <?php echo $staff_member['full_name']; ?>
-        </option>
-    <?php endforeach; ?>
-
-    <?php foreach ($other_staff as $staff_member): ?>
-        <?php
-        $option_value = $staff_member['id'] . '-so';
-        $selected = (isset($_POST['remitting_staff']) && $_POST['remitting_staff'] == $option_value) ? 'selected' : '';
-        ?>
-        <option value="<?php echo $option_value; ?>" <?php echo $selected; ?>>
-            <?php echo $staff_member['full_name'] . ' - ' . $staff_member['department']; ?>
-        </option>
-    <?php endforeach; ?>
-
-</select>
-                        </div>
+                            <?php foreach ($other_staff as $staff_member): ?>
+                            <?php
+                            $option_value = $staff_member['id'] . '-so';
+                            $selected = (isset($_POST['remitting_staff']) && $_POST['remitting_staff'] == $option_value) ? 'selected' : '';
+                            ?>
+                            <option value="<?php echo $option_value; ?>" <?php echo $selected; ?>>
+                                <?php echo $staff_member['full_name'] . ' - ' . $staff_member['department']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
                         <!-- Row 3: Debit & Credit Accounts -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -469,20 +468,19 @@ $scroll_boards = $db->resultSet();
                                     Debit Account <span class="text-red-600">*</span>
                                 </label>
                                 <select name="debit_account" required class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-    
-    <option value="">
-        -- Select Debit Account --
-    </option>
-    
-    <option value="10103">
-        Account Till
-    </option> 
-    
-    <option value="10150">
-        Wealth Creation Funds Account
-    </option>
-    
-</select>
+                                    <option value="">
+                                        -- Select Debit Account --
+                                    </option>
+                                    
+                                    <option value="10103">
+                                        Account Till
+                                    </option> 
+                                    
+                                    <option value="10150">
+                                        Wealth Creation Funds Account
+                                    </option>
+                                    
+                                </select>
                             </div>
 
 
@@ -491,29 +489,29 @@ $scroll_boards = $db->resultSet();
                                     Credit Account (Income Line) <span class="text-red-600">*</span>
                                 </label>
                                <select 
-    name="credit_account" 
-    id="credit_account" 
-    required 
-    class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
->
-    <option value="">-- Select Income Line --</option>
-    
-    <?php foreach ($income_lines as $account): ?>
-        <?php
-        // Define the option's value
-        $option_value = $account['acct_id'];
-        
-        ?>
-        <option 
-            value="<?php echo $option_value; ?>"
-            data-desc="<?php echo htmlspecialchars($account['acct_desc']); ?>"
-           
-        >
-            <?php echo htmlspecialchars($account['acct_desc']); ?>
-        </option>
-    <?php endforeach; ?>
-</select>
-                            </div>
+                                    name="credit_account" 
+                                    id="credit_account" 
+                                    required 
+                                    class="common-inputs w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                >
+                                    <option value="">-- Select Income Line --</option>
+                                    
+                                    <?php foreach ($income_lines as $account): ?>
+                                        <?php
+                                        // Define the option's value
+                                        $option_value = $account['acct_id'];
+                                        
+                                        ?>
+                                        <option 
+                                            value="<?php echo $option_value; ?>"
+                                            data-desc="<?php echo htmlspecialchars($account['acct_desc']); ?>"
+                                        
+                                        >
+                                            <?php echo htmlspecialchars($account['acct_desc']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                                            </div>
                             <?php endif; ?>
 
                             <?php if ($_SESSION['department'] == "Wealth Creation" || $staff["level"] == "ce") : ?>
@@ -821,61 +819,61 @@ $scroll_boards = $db->resultSet();
 
                         <!-- Category -->
                        <div>
-    <label class="block mb-2 text-sm font-medium text-gray-700">
-        Category <span class="text-red-600">*</span>
-    </label>
-    <select name="category" id="ld_category" onchange="calculateAmount()" data-required="true"
-        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        
-        <option value="">Select category</option>
-        
-        <option value="Goods (Offloading) - N7000" data-amount="7000">Goods (Offloading) - N7000</option>
-        <option data-amount="15000" value="Goods (Offloading) - N15000">Goods (Offloading) - N15000</option>
-        <option data-amount="20000" value="Goods (Offloading) - N20000">Goods (Offloading) - N20000</option>
-        <option data-amount="30000" value="Goods (Offloading) - N30000">Goods (Offloading) - N30000</option>
-        <option data-amount="20000" value="Goods (Loading) - N20000">Goods (Loading) - N20000</option>
-        
-        <option data-amount="2500" value="Fruits (Offloading) - N2500">Fruits (Offloading) - N2500</option>
-        <option data-amount="3500" value="Fruits (Offloading) - N3500">Fruits (Offloading) - N3500</option>
-        <option data-amount="7000" value="Fruits (Offloading) - N7000">Fruits (Offloading) - N7000</option>
-        <option data-amount="15000" value="Fruits (Offloading) - N15000">Fruits (Offloading) - N15000</option>
-        
-        <option data-amount="3500" value="Apple Bus (Loading) - N3500">Apple Bus (Loading) - N3500</option>
-        <option data-amount="7000" value="Cargo Truck (Loading) - N7000">Cargo Truck (Loading) - N7000</option>
-        <option data-amount="15000" value="Cargo Truck 1 (Offloading) - N15000">Cargo Truck 1 (Offloading) - N15000</option>
-        <option data-amount="20000" value="Cargo Truck 2 (Offloading) - N20000">Cargo Truck 2 (Offloading) - N20000</option>
-        <option data-amount="20000" value="OK Truck (Offloading) - N20000">OK Truck (Offloading) - N20000</option>
-        
-        <option data-amount="15000" value="20 feet container - (Loading) - N15000">20 feet container - (Loading) - N15000</option>
-        <option data-amount="15000" value="20 feet container - (Offloading) - N15000">20 feet container - (Offloading) - N15000</option>
-        
-        <option data-amount="30000" value="40 feet container - (Offloading) N30000">40 feet container - (Offloading) N30000</option>
-        <option data-amount="30000" value="40 feet container - (Abassa Offloading - Weekend) - N30000">40 feet container - (Abassa Offloading - Weekend) - N30000</option>
-        <option data-amount="60000" value="40 feet container - (Shoe Offloading - Weekend) - N60000">40 feet container - (Shoe Offloading - Weekend) - N60000</option>
-        <option data-amount="30000" value="40 feet container - (Apple Offloading) - N30000">40 feet container - (Apple Offloading) - N30000</option>
-        <option data-amount="60000" value="40 feet container - (Apple Offloading - Sunday) - N60000">40 feet container - (Apple Offloading - Sunday) - N60000</option>
-        <option data-amount="30000" value="40 feet container - (Ok, Curtain Offloading) - N30000">40 feet container - (Ok, Curtain Offloading) - N30000</option>
-        
-        <option data-amount="4000" value="LT Buses (Offloading) - N4000">LT Buses (Offloading) - N4000</option>
-        <option data-amount="7000" value="LT Buses (Offloading - Sunday) - N7000">LT Buses (Offloading - Sunday) - N7000</option>
-        <option data-amount="4000" value="LT Buses (Loading) - N4000">LT Buses (Loading) - N4000</option>
-        
-        <option data-amount="3000" value="Mini LT Buses (Loading) - N3000">Mini LT Buses (Loading) - N3000</option>
-        <option data-amount="3000" value="Mini LT Buses (Offloading) - N3000">Mini LT Buses (Offloading) - N3000</option>
-        
-        <option data-amount="1000" value="LT Buses Army Staff (Loading) - N1000">LT Buses Army Staff (Loading) - N1000</option>
-        <option data-amount="2000" value="LT Buses Army Staff (Loading) - N2000">LT Buses Army Staff (Loading) - N2000</option>
-        
-        <option data-amount="5000" value="Mini Van (Loading) - N5000">Mini Van (Loading) - N5000</option>
-        <option data-amount="5000" value="Mini Van (Offloading) - N5000">Mini Van (Offloading) - N5000</option>
-        <option data-amount="6000" value="OK Mini Van (Loading) - N6000">OK Mini Van (Loading) - N6000</option>
-        <option data-amount="6000" value="OK Mini Van (Offloading) - N6000">OK Mini Van (Offloading) - N6000</option>
-        
-        <option data-amount="2000" value="Sienna Buses (Loading) - N2000">Sienna Buses (Loading) - N2000</option>
-        <option data-amount="30000" value="Oil Tanker (Offloading) - N30000">Oil Tanker (Offloading) - N30000</option>
-        
-    </select>
-</div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Category <span class="text-red-600">*</span>
+                            </label>
+                            <select name="category" id="ld_category" onchange="calculateAmount()" data-required="true"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                
+                                <option value="">Select category</option>
+                                
+                                <option value="Goods (Offloading) - N7000" data-amount="7000">Goods (Offloading) - N7000</option>
+                                <option data-amount="15000" value="Goods (Offloading) - N15000">Goods (Offloading) - N15000</option>
+                                <option data-amount="20000" value="Goods (Offloading) - N20000">Goods (Offloading) - N20000</option>
+                                <option data-amount="30000" value="Goods (Offloading) - N30000">Goods (Offloading) - N30000</option>
+                                <option data-amount="20000" value="Goods (Loading) - N20000">Goods (Loading) - N20000</option>
+                                
+                                <option data-amount="2500" value="Fruits (Offloading) - N2500">Fruits (Offloading) - N2500</option>
+                                <option data-amount="3500" value="Fruits (Offloading) - N3500">Fruits (Offloading) - N3500</option>
+                                <option data-amount="7000" value="Fruits (Offloading) - N7000">Fruits (Offloading) - N7000</option>
+                                <option data-amount="15000" value="Fruits (Offloading) - N15000">Fruits (Offloading) - N15000</option>
+                                
+                                <option data-amount="3500" value="Apple Bus (Loading) - N3500">Apple Bus (Loading) - N3500</option>
+                                <option data-amount="7000" value="Cargo Truck (Loading) - N7000">Cargo Truck (Loading) - N7000</option>
+                                <option data-amount="15000" value="Cargo Truck 1 (Offloading) - N15000">Cargo Truck 1 (Offloading) - N15000</option>
+                                <option data-amount="20000" value="Cargo Truck 2 (Offloading) - N20000">Cargo Truck 2 (Offloading) - N20000</option>
+                                <option data-amount="20000" value="OK Truck (Offloading) - N20000">OK Truck (Offloading) - N20000</option>
+                                
+                                <option data-amount="15000" value="20 feet container - (Loading) - N15000">20 feet container - (Loading) - N15000</option>
+                                <option data-amount="15000" value="20 feet container - (Offloading) - N15000">20 feet container - (Offloading) - N15000</option>
+                                
+                                <option data-amount="30000" value="40 feet container - (Offloading) N30000">40 feet container - (Offloading) N30000</option>
+                                <option data-amount="30000" value="40 feet container - (Abassa Offloading - Weekend) - N30000">40 feet container - (Abassa Offloading - Weekend) - N30000</option>
+                                <option data-amount="60000" value="40 feet container - (Shoe Offloading - Weekend) - N60000">40 feet container - (Shoe Offloading - Weekend) - N60000</option>
+                                <option data-amount="30000" value="40 feet container - (Apple Offloading) - N30000">40 feet container - (Apple Offloading) - N30000</option>
+                                <option data-amount="60000" value="40 feet container - (Apple Offloading - Sunday) - N60000">40 feet container - (Apple Offloading - Sunday) - N60000</option>
+                                <option data-amount="30000" value="40 feet container - (Ok, Curtain Offloading) - N30000">40 feet container - (Ok, Curtain Offloading) - N30000</option>
+                                
+                                <option data-amount="4000" value="LT Buses (Offloading) - N4000">LT Buses (Offloading) - N4000</option>
+                                <option data-amount="7000" value="LT Buses (Offloading - Sunday) - N7000">LT Buses (Offloading - Sunday) - N7000</option>
+                                <option data-amount="4000" value="LT Buses (Loading) - N4000">LT Buses (Loading) - N4000</option>
+                                
+                                <option data-amount="3000" value="Mini LT Buses (Loading) - N3000">Mini LT Buses (Loading) - N3000</option>
+                                <option data-amount="3000" value="Mini LT Buses (Offloading) - N3000">Mini LT Buses (Offloading) - N3000</option>
+                                
+                                <option data-amount="1000" value="LT Buses Army Staff (Loading) - N1000">LT Buses Army Staff (Loading) - N1000</option>
+                                <option data-amount="2000" value="LT Buses Army Staff (Loading) - N2000">LT Buses Army Staff (Loading) - N2000</option>
+                                
+                                <option data-amount="5000" value="Mini Van (Loading) - N5000">Mini Van (Loading) - N5000</option>
+                                <option data-amount="5000" value="Mini Van (Offloading) - N5000">Mini Van (Offloading) - N5000</option>
+                                <option data-amount="6000" value="OK Mini Van (Loading) - N6000">OK Mini Van (Loading) - N6000</option>
+                                <option data-amount="6000" value="OK Mini Van (Offloading) - N6000">OK Mini Van (Offloading) - N6000</option>
+                                
+                                <option data-amount="2000" value="Sienna Buses (Loading) - N2000">Sienna Buses (Loading) - N2000</option>
+                                <option data-amount="30000" value="Oil Tanker (Offloading) - N30000">Oil Tanker (Offloading) - N30000</option>
+                                
+                            </select>
+                        </div>
                         <!-- No. of Days and Plate No -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                             <div>
@@ -1163,9 +1161,6 @@ $scroll_boards = $db->resultSet();
                     </div>
 
                    
-                     <?php if ($staff['department'] === 'Wealth Creation' && $current_remittance_balance['unposted'] <= 0): ?>
-                        <p class="text-red-600 font-medium">You do not have any unposted remittances for today.</p>
-                    <?php else: ?>
                     <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md text-center"
                         id="submit_section">
                         <button type="submit" name="btn_post_transaction"
@@ -1305,26 +1300,26 @@ $scroll_boards = $db->resultSet();
             document.getElementById('cl_amount').value = (1000 * ticketPrice ).toFixed(2);
         }
 
-         if (incomeLine === 'other_pos') {
+        if (incomeLine === 'other_pos') {
             const ticketPrice = parseFloat(document.getElementById('op_ticket').value) || 0;
             document.getElementById('op_amount').value = (300 * ticketPrice ).toFixed(2);
         }
 
       if (incomeLine === 'loading') {
-    // 1. Get the select element
-    const category = document.getElementById('ld_category');
-    // 2. Safely retrieve the numerical value from the 'data-amount' attribute
-    const selectedOption = category.options[category.selectedIndex];
+            // 1. Get the select element
+            const category = document.getElementById('ld_category');
+            // 2. Safely retrieve the numerical value from the 'data-amount' attribute
+            const selectedOption = category.options[category.selectedIndex];
 
-    const amount = parseFloat(selectedOption?.getAttribute('data-amount')) || 0; // If data-amount is not found, amount will be 0
+            const amount = parseFloat(selectedOption?.getAttribute('data-amount')) || 0; // If data-amount is not found, amount will be 0
 
-    // 3. Get the number of days, defaulting to 1
-    const days = parseInt(document.getElementById('ld_days').value) || 1;
-                console.log(days);
+            // 3. Get the number of days, defaulting to 1
+            const days = parseInt(document.getElementById('ld_days').value) || 1;
+                        console.log(days);
 
-    // 4. Calculate and set the amount
-    document.getElementById('loading_amount').value = (amount * days).toFixed(2);
-}
+            // 4. Calculate and set the amount
+            document.getElementById('loading_amount').value = (amount * days).toFixed(2);
+        }
 
         if (incomeLine === 'daily_trade') {
             const ticketPrice = parseFloat(document.getElementById('dt_ticket').value) || 0;

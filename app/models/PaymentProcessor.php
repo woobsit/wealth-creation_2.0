@@ -261,10 +261,10 @@ class PaymentProcessor {
      */
     public function getAccountInfo($account_identifier, $by_alias = true) {
         // Debug check
-         echo "<pre>DEBUG: account_identifier = " . htmlspecialchars($account_identifier) . 
-         " | by_alias = " . ($by_alias ? 'true' : 'false') . "</pre>";
+        //  echo "<pre>DEBUG: account_identifier = " . htmlspecialchars($account_identifier) . 
+        //  " | by_alias = " . ($by_alias ? 'true' : 'false') . "</pre>";
         if ($by_alias) {
-            $this->db->query("SELECT acct_id, acct_table_name, acct_desc FROM accounts WHERE acct_alias = :identifier");
+            $this->db->query("SELECT acct_id, acct_table_name, acct_desc FROM accounts WHERE acct_id = :identifier");
         } else {
             $this->db->query("SELECT acct_id, acct_table_name, acct_desc FROM accounts WHERE acct_id = :identifier");
         }
@@ -449,12 +449,21 @@ class PaymentProcessor {
             }
         }
 
+    if (empty($data['remitting_staff'])) {
+            $errors[] = 'The remitting staff name is required';
+        }
+
         if (empty($data['amount_paid']) || !is_numeric($data['amount_paid']) || $data['amount_paid'] <= 0) {
             $errors[] = 'Amount must be a valid number and greater than 0.';
         }
+//var_dump($data['income_line']);
+//var_dump($data['income_line_type']);
 
+//exit();
+        if($data['income_line_type'] !== "car_sticker" AND $data['income_line_type'] !== "car_park" AND $data['income_line_type'] !== "loading"){
         if (empty($data['transaction_desc'])) {
             $errors[] = 'Transaction description is required';
+        }
         }
 
         if (empty($data['debit_account'])) {
@@ -464,6 +473,8 @@ class PaymentProcessor {
         if (empty($data['credit_account'])) {
             $errors[] = 'Credit account (income line) is required';
         }
+
+
 
         if ($data['posting_officer_dept'] == 'Wealth Creation' && !empty($data['remit_id'])) {
             $balance = $this->getRemittanceBalance($data['posting_officer_id'], $data['current_date']);
@@ -656,19 +667,18 @@ class PaymentProcessor {
             }
 
             $full_transaction_desc = $credit_account_info['acct_desc'] . ' - ' . $transaction_desc;
-            $income_line = $data['income_line'] ?: $credit_account_info['acct_desc'];
+            $income_line = $data['income_line_type'] ? $data['income_line_type']: "";
 
             $payment_category = 'Other Collection';
             $ticket_category = isset($data['ticket_category']) ? $data['ticket_category'] : '';
             $no_of_tickets   = isset($data['no_of_tickets']) ? $data['no_of_tickets'] : '';
-            $category        = isset($data['category']) ? $data['category'] : '';
+            //$category        = isset($data['category']) ? $data['category'] : '';
             $plate_no        = isset($data['plate_no']) ? $data['plate_no'] : '';
             $no_of_days      = isset($data['no_of_days']) ? $data['no_of_days'] : '';
-            $quantity        = isset($data['quantity']) ? $data['quantity'] : '';
+            //$quantity        = isset($data['quantity']) ? $data['quantity'] : '';
             $no_of_nights    = isset($data['no_of_nights']) ? $data['no_of_nights'] : '';
-            $type            = isset($data['type']) ? $data['type'] : '';
-            $board_name      = isset($data['board_name']) ? $data['board_name'] : '';
-
+            //$type            = isset($data['type']) ? $data['type'] : '';
+           // $board_name      = isset($data['board_name']) ? $data['board_name'] : '';
 
             $this->db->query("
                 INSERT INTO account_general_transaction_new (
@@ -676,15 +686,15 @@ class PaymentProcessor {
                     remitting_id, remitting_staff, posting_officer_id, posting_officer_name,
                     posting_time, leasing_post_status, approval_status, verification_status,
                     debit_account, credit_account, payment_category, remit_id, income_line,
-                    ticket_category, no_of_tickets, category, plate_no, no_of_days,
-                    quantity, no_of_nights, type, board_name
+                    ticket_category, no_of_tickets, plate_no, no_of_days,
+                     no_of_nights
                 ) VALUES (
                     :txref, :date_payment, :trans_desc, :receipt_no, :amount_paid,
                     :remitting_id, :remitting_staff, :officer_id, :officer_name,
                     :posting_time, :leasing_status, :approval_status, :verification_status,
                     :debit_account, :credit_account, :payment_category, :remit_id, :income_line,
-                    :ticket_category, :no_of_tickets, :category, :plate_no, :no_of_days,
-                    :quantity, :no_of_nights, :type, :board_name
+                    :ticket_category, :no_of_tickets, :plate_no, :no_of_days,
+                     :no_of_nights
                 )
             ");
 
@@ -708,13 +718,13 @@ class PaymentProcessor {
             $this->db->bind(':income_line', $income_line);
             $this->db->bind(':ticket_category', $ticket_category);
             $this->db->bind(':no_of_tickets', $no_of_tickets);
-            $this->db->bind(':category', $category);
+            //$this->db->bind(':category', $category);
             $this->db->bind(':plate_no', $plate_no);
             $this->db->bind(':no_of_days', $no_of_days);
-            $this->db->bind(':quantity', $quantity);
+            //$this->db->bind(':quantity', $quantity);
             $this->db->bind(':no_of_nights', $no_of_nights);
-            $this->db->bind(':type', $type);
-            $this->db->bind(':board_name', $board_name);
+            // $this->db->bind(':type', $type);
+            // $this->db->bind(':board_name', $board_name);
 
             $this->db->execute();
 

@@ -243,7 +243,7 @@ $other_staff = $processor->getOtherStaffList();
                         <?php
                         $income_lines = [
                             'general' => 'General',
-                            'car_park' => 'Car Park Tickets',
+                            'carpark' => 'Car Park Tickets',
                             'car_loading' => 'Car Loading Tickets',
                             'hawkers' => 'Hawkers Tickets',
                             'wheelbarrow' => 'WheelBarrow Tickets',
@@ -459,7 +459,7 @@ $other_staff = $processor->getOtherStaffList();
                     <?php endif; ?>
 
                     <!-- Car Park Form -->
-                    <?php if ($income_line === 'car_park'): ?>
+                    <?php if ($income_line === 'carpark'): ?>
                     <form method="POST" class="space-y-6">
                         <input type="hidden" name="posting_officer_id" value="<?php echo $staff['user_id']; ?>">
                         <input type="hidden" name="posting_officer_name" value="<?php echo $staff['full_name']; ?>">
@@ -579,7 +579,7 @@ $other_staff = $processor->getOtherStaffList();
 
 
                     <!-- Other income line forms would go here -->
-                    <?php if ($income_line !== 'car_park'): ?>
+                    <?php if ($income_line !== 'carpark'): ?>
                     <div class="text-center py-12">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">
                             <?php echo ucwords(str_replace('_', ' ', $income_line)); ?> Form

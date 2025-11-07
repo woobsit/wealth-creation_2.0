@@ -37,6 +37,14 @@ $posting_officer_dept = $_SESSION['department'];
 $db->query("SELECT * FROM accounts WHERE income_line = 'Yes' AND active = 'Yes' ORDER BY acct_desc ASC");
 $income_lines = $db->resultSet();
 
+
+$db->query("SELECT * FROM accounts WHERE page_visibility = 'General' AND active = 'Yes' ORDER BY acct_desc ASC");
+$incs = $db->resultSet();
+
+$db->query("SELECT * FROM accounts WHERE page_visibility = 'Loading' AND active = 'Yes' ORDER BY acct_desc ASC");
+$incs_loading = $db->resultSet();
+
+
 // $db->query("SELECT * FROM accounts WHERE active = 'Yes' AND ( acct_desc = 'Account Till' OR acct_desc = 'Wealth Creation Funds Account' ) ORDER BY acct_desc ASC");
 // $all_accounts = $db->resultSet();
 
@@ -70,10 +78,12 @@ if (isset($_SESSION['form_errors'])) {
     $errors = $_SESSION['form_errors'];
 
     // ⚠️ Clear the session variable immediately after retrieving it
-    unset($_SESSION['form_errors']);}
+    unset($_SESSION['form_errors']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction'])) {
     try {
+        
         $posting_data = [
             'shop_no'            => isset($_POST['shop_no']) ? $_POST['shop_no'] : '',
             'date_of_payment'       => isset($_POST['date_of_payment']) ? $_POST['date_of_payment'] : '',
@@ -102,14 +112,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_post_transaction']
             'board_name'            => isset($_POST['board_name']) ? $_POST['board_name'] : '',
             'car_sticker'            => isset($_POST['car_sticker']) ? $_POST['car_sticker'] : ''
         ];
-        
+
         $validation = $paymentProcessor->validatePosting($posting_data);
 
         if (!$validation['valid']) {
             $errors = $validation['errors'];
             $_SESSION['form_errors'] = $errors;
-            
-             header("refresh:2; url=payments_unified.php?income_line=" . urlencode($posting_data['income_line_type']));
+
+            header("refresh:2; url=payments_unified.php?income_line=" . urlencode($posting_data['income_line_type']));
         } else {
             $db->beginTransaction();
 
@@ -243,7 +253,7 @@ $scroll_boards = $db->resultSet();
                         <i class="fa fa-car text-lg opacity-90"></i>
                     </div>
                     <div class="income-line-card flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg cursor-pointer transition hover:scale-[1.02] hover:shadow-lg"
-                        data-income-line="car_park" onclick="selectIncomeLine('car_park')">
+                        data-income-line="carpark" onclick="selectIncomeLine('carpark')">
                         <div>
                             <h5 class="text-sm font-bold">Car Park</h5>
                             <p class="text-xs opacity-90">Parking Tickets</p>
@@ -506,14 +516,14 @@ $scroll_boards = $db->resultSet();
 
                             <?php if ($_SESSION['department'] == "Wealth Creation" || $staff["level"] == "ce") : ?>
                                 <div>
-                                    <input type="hidden" class="common-inputs" name="debit_account" value="till"
+                                    <input type="hidden" class="common-inputs" name="debit_account" value="10103"
                                         maxlength="50">
                                 </div>
-
+ 
                                 <div>
                                     <input type="hidden" class="common-inputs" name="credit_account_wc"
                                         id="credit_account_wc" value="" maxlength="50">
-                                </div>
+                                </div> 
                             <?php endif; ?>
                         </div>
 
@@ -524,6 +534,37 @@ $scroll_boards = $db->resultSet();
                     <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="form_general">
                         <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">
                             General/Other Income</h3>
+                       
+
+                       <?php if ($_SESSION['department'] == "Wealth Creation" || $staff["level"] == "ce"): ?>
+                       
+                        <div class="mb-4">
+                            <label class="block mb-2 font-bold  text-gray-700">
+                                Income Line <span class="text-red-600">*</span>
+                            </label>
+
+                            <select name="credit_account_wc" data-required="true"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select an income line</option>
+                                
+                                    <?php foreach ($incs as $acc): ?>
+                                            <?php
+                                            // Define the option's value
+                                            $option_value = $acc['acct_id'];
+                                            ?>
+                                            <option value="<?php echo $option_value; ?>"
+                                                data-desc="<?php echo htmlspecialchars($acc['acct_desc']); ?>">
+                                                <?php echo htmlspecialchars($acc['acct_desc']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+
+                            </select>
+                        </div>
+
+                        <?php endif; ?>
+
+
+
                         <div class="mb-4">
                             <label class="block mb-2 font-bold text-gray-800">Amount <span
                                     class="text-red-600">*</span></label>
@@ -904,6 +945,33 @@ $scroll_boards = $db->resultSet();
 
                             </select>
                         </div>
+                          <?php if ($_SESSION['department'] == "Wealth Creation" || $staff["level"] == "ce") : ?>
+
+                    <div class="mb-4">
+                            <label class="block mb-2 font-bold  text-gray-700">
+                                Income Line <span class="text-red-600">*</span>
+                            </label>
+
+                            <select name="credit_account_wc" data-required="true"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select an income line</option>
+                                
+                                    <?php foreach ($incs_loading as $acc_loading): ?>
+                                            <?php
+                                            // Define the option's value
+                                            $option_value = $acc_loading['acct_id'];
+                                            ?>
+                                            <option value="<?php echo $option_value; ?>"
+                                                data-desc="<?php echo htmlspecialchars($acc_loading['acct_desc']); ?>">
+                                                <?php echo htmlspecialchars($acc_loading['acct_desc']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+
+                            </select>
+                        </div>
+
+
+
                         <!-- No. of Days and Plate No -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                             <div>
@@ -934,7 +1002,7 @@ $scroll_boards = $db->resultSet();
                         </div>
 
                     </div>
-
+                        <?php endif; ?>
                     <!-- Daily Trade Form -->
                     <div class="form-section hidden bg-white p-6 my-5 rounded-lg shadow-md" id="form_daily_trade">
                         <h3 class="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2 mb-5">Daily Trade
@@ -1155,7 +1223,7 @@ $scroll_boards = $db->resultSet();
                             <input type="number" name="amount_paid" id="overnight_amount" step="1" readonly
                                 class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-sm">
                         </div>
-                       
+
                     </div>
 
                     <!-- Scroll Board Form -->
@@ -1231,7 +1299,7 @@ $scroll_boards = $db->resultSet();
 
             // Define aliases just like you'd do with PHP conditions
             var aliasMap = {
-                'car_park': 'car_park',
+                'carpark': 'carpark',
                 'daily_trade': 'daily_trade',
                 'daily_trade_arrears': 'daily_trade_arrears',
                 'hawkers': 'hawkers',
@@ -1250,12 +1318,12 @@ $scroll_boards = $db->resultSet();
                 // 'Offloading Truck': 'offloading_truck',
                 // 'offloading': 'offloading',
                 // 'overnight_parking': 'overnight_parking',
-                
+
                 // 'Wealth Creation Funds Account': 'wc_funds_ac',
                 // 'KClamp (New Space)': 'kclamp',
                 // 'Car Park Ticket': 'carpark',
                 // 'Application Form': 'application_form',
-                
+
                 // 'Taxi Operators (Renewal)': 'taxi_operators',
                 // 'Toilet Collection': 'toilet_collection',
                 // 'Key Replacement': 'key_replacement',
@@ -1339,7 +1407,7 @@ $scroll_boards = $db->resultSet();
         function calculateAmount() {
             const incomeLine = currentIncomeLine;
 
-            if (incomeLine === 'car_park') {
+            if (incomeLine === 'carpark') {
                 const ticketPrice = parseFloat(document.getElementById('cp_ticket').value) || 0;
                 const tickets = parseInt(document.getElementById('cp_tickets').value) || 0;
                 document.getElementById('cp_amount').value = (ticketPrice * tickets).toFixed(2);

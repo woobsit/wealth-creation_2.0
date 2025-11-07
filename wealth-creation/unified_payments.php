@@ -156,7 +156,7 @@ $scroll_boards = $db->resultSet();
             <div class="bg-white p-6 my-5 rounded-lg shadow-md">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Select Income Line</h3>
                 <div id="income-line-cards" class="flex flex-wrap gap-3">
-                    <div class="income-line-card inline-block w-48 p-5 bg-gradient-to-br from-blue-500 to-purple-600 text-white text-center rounded-lg cursor-pointer transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl" data-income-line="car_park" onclick="selectIncomeLine('car_park')">
+                    <div class="income-line-card inline-block w-48 p-5 bg-gradient-to-br from-blue-500 to-purple-600 text-white text-center rounded-lg cursor-pointer transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl" data-income-line="carpark" onclick="selectIncomeLine('carpark')">
                         <h4 class="text-lg font-bold mb-1">Car Park</h4>
                         <p class="text-sm">Parking Tickets</p>
                     </div>
@@ -549,7 +549,7 @@ $scroll_boards = $db->resultSet();
         function calculateAmount() {
             const incomeLine = currentIncomeLine;
 
-            if (incomeLine === 'car_park') {
+            if (incomeLine === 'carpark') {
                 const ticketPrice = parseFloat(document.getElementById('cp_ticket').value) || 0;
                 const tickets = parseInt(document.getElementById('cp_tickets').value) || 0;
                 document.getElementById('cp_amount').value = (ticketPrice * tickets).toFixed(2);

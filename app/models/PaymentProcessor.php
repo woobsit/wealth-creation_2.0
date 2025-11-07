@@ -1,19 +1,22 @@
 <?php
 // require_once 'Database.php';
-class PaymentProcessor {
+class PaymentProcessor
+{
     private $db;
-    
+
     // public function __construct() {
     //     $this->db = new Database();
     // }
-    public function __construct($databaseObj) {
+    public function __construct($databaseObj)
+    {
         $this->db = $databaseObj;
     }
-    
+
     /**
      * Gat the account income line
      */
-    public function getIncomeLineAccounts() {
+    public function getIncomeLineAccounts()
+    {
         $query = "SELECT * 
                     FROM accounts 
                     WHERE page_visibility = 'General' AND active = 'Yes' 
@@ -29,7 +32,7 @@ class PaymentProcessor {
     //     $this->db->bind(':receipt_no', $receipt_no);
     //     return $this->db->single();
     // }
-    
+
     /**
      * Get staff information
      */
@@ -42,7 +45,7 @@ class PaymentProcessor {
     //     $this->db->bind(':staff_id', $staff_id);
     //     return $this->db->single();
     // }
-    
+
     /**
      * Get account information
      */
@@ -55,7 +58,7 @@ class PaymentProcessor {
     //     $this->db->bind(':identifier', $account_identifier);
     //     return $this->db->single();
     // }
-    
+
     /**
      * Get remittance balance for Wealth Creation staff
      */
@@ -71,7 +74,7 @@ class PaymentProcessor {
     //     $this->db->bind(':officer_id', $posting_officer_id);
     //     $this->db->bind(':current_date', $current_date);
     //     $posted = $this->db->single();
-        
+
     //     // Get amount remitted today
     //     $this->db->query("
     //         SELECT COALESCE(SUM(amount_paid), 0) as amount_remitted, remit_id, date
@@ -83,7 +86,7 @@ class PaymentProcessor {
     //     $this->db->bind(':officer_id', $posting_officer_id);
     //     $this->db->bind(':current_date', $current_date);
     //     $remitted = $this->db->single();
-        
+
     //     return [
     //         'amount_posted' => $posted['amount_posted'],
     //         'amount_remitted' => $remitted['amount_remitted'],
@@ -96,7 +99,8 @@ class PaymentProcessor {
     /**
      * Get till Balance for officers
      */
-    public function totalTillBalance($officerId) {
+    public function totalTillBalance($officerId)
+    {
         $sql  = 'SELECT SUM(amount_paid) AS total
                 FROM account_general_transaction_new
                 WHERE posting_officer_id = :oid
@@ -107,22 +111,22 @@ class PaymentProcessor {
         $row = $this->db->single();
 
         $total = $row && $row['total'] !== null
-                ? (float)$row['total']
-                : 0.0;
+            ? (float)$row['total']
+            : 0.0;
 
         return $total;
     }
-    
+
     /**
      * Process car park payment
      */
     // public function processCarParkPayment($data) {
     //     $this->db->beginTransaction();
-        
+
     //     try {
     //         $txref = time() . mt_rand(0, 9);
     //         $now = date('Y-m-d H:i:s');
-            
+
     //         // Insert main transaction
     //         $this->db->query("
     //             INSERT INTO account_general_transaction_new (
@@ -139,7 +143,7 @@ class PaymentProcessor {
     //                 :no_tickets, :remit_id, :income_line
     //             )
     //         ");
-            
+
     //         $this->db->bind(':txref', $txref);
     //         $this->db->bind(':date_payment', $data['date_of_payment']);
     //         $this->db->bind(':ticket_category', $data['ticket_category']);
@@ -160,9 +164,9 @@ class PaymentProcessor {
     //         $this->db->bind(':no_tickets', $data['no_of_tickets']);
     //         $this->db->bind(':remit_id', $data['remit_id']);
     //         $this->db->bind(':income_line', $data['income_line']);
-            
+
     //         $this->db->execute();
-            
+
     //         // Insert debit entry
     //         $this->db->query("
     //             INSERT INTO {$data['db_debit_table']} (
@@ -171,7 +175,7 @@ class PaymentProcessor {
     //                 :txref, :acct_id, :date, :receipt_no, :trans_desc, :amount, :balance, :approval_status
     //             )
     //         ");
-            
+
     //         $this->db->bind(':txref', $txref);
     //         $this->db->bind(':acct_id', $data['debit_account']);
     //         $this->db->bind(':date', $data['date_of_payment']);
@@ -180,9 +184,9 @@ class PaymentProcessor {
     //         $this->db->bind(':amount', $data['amount_paid']);
     //         $this->db->bind(':balance', '');
     //         $this->db->bind(':approval_status', $data['approval_status']);
-            
+
     //         $this->db->execute();
-            
+
     //         // Insert credit entry
     //         $this->db->query("
     //             INSERT INTO {$data['db_credit_table']} (
@@ -191,7 +195,7 @@ class PaymentProcessor {
     //                 :txref, :acct_id, :date, :receipt_no, :trans_desc, :amount, :balance, :approval_status
     //             )
     //         ");
-            
+
     //         $this->db->bind(':txref', $txref);
     //         $this->db->bind(':acct_id', $data['credit_account']);
     //         $this->db->bind(':date', $data['date_of_payment']);
@@ -200,18 +204,18 @@ class PaymentProcessor {
     //         $this->db->bind(':amount', $data['amount_paid']);
     //         $this->db->bind(':balance', '');
     //         $this->db->bind(':approval_status', $data['approval_status']);
-            
+
     //         $this->db->execute();
-            
+
     //         $this->db->endTransaction();
     //         return ['success' => true, 'message' => 'Payment successfully posted for approval!'];
-            
+
     //     } catch (Exception $e) {
     //         $this->db->cancelTransaction();
     //         return ['success' => false, 'message' => 'Error occurred while posting: ' . $e->getMessage()];
     //     }
     // }
-    
+
     /**
      * Get staff list for dropdown
      */
@@ -222,10 +226,10 @@ class PaymentProcessor {
     //     } else {
     //         $this->db->query("SELECT user_id, full_name FROM staffs ORDER BY full_name ASC");
     //     }
-        
+
     //     return $this->db->resultSet();
     // }
-    
+
     /**
      * Get other staff list
      */
@@ -237,16 +241,18 @@ class PaymentProcessor {
     /**
      * Check if receipt number already exists
      */
-    public function checkReceiptExists($receipt_no) {
+    public function checkReceiptExists($receipt_no)
+    {
         $this->db->query("SELECT posting_officer_name, date_of_payment FROM account_general_transaction_new WHERE receipt_no = :receipt_no");
         $this->db->bind(':receipt_no', $receipt_no);
         return $this->db->single();
     }
-    
+
     /**
      * Get staff information
      */
-    public function getStaffInfo($staff_id, $staff_type = 'wc') {
+    public function getStaffInfo($staff_id, $staff_type = 'wc')
+    {
         if ($staff_type === 'wc') {
             $this->db->query("SELECT full_name FROM staffs WHERE user_id = :staff_id");
         } else {
@@ -255,11 +261,12 @@ class PaymentProcessor {
         $this->db->bind(':staff_id', $staff_id);
         return $this->db->single();
     }
-    
+
     /**
      * Get account information
      */
-    public function getAccountInfo($account_identifier, $by_alias = true) {
+    public function getAccountInfo($account_identifier, $by_alias = true)
+    {
         // Debug check
         //  echo "<pre>DEBUG: account_identifier = " . htmlspecialchars($account_identifier) . 
         //  " | by_alias = " . ($by_alias ? 'true' : 'false') . "</pre>";
@@ -271,11 +278,12 @@ class PaymentProcessor {
         $this->db->bind(':identifier', $account_identifier);
         return $this->db->single();
     }
-    
+
     /**
      * Get remittance balance for Wealth Creation staff
      */
-    public function getRemittanceBalance($posting_officer_id, $current_date) {
+    public function getRemittanceBalance($posting_officer_id, $current_date)
+    {
         // Get amount posted today
         $this->db->query("
             SELECT COALESCE(SUM(amount_paid), 0) as amount_posted 
@@ -287,7 +295,7 @@ class PaymentProcessor {
         $this->db->bind(':officer_id', $posting_officer_id);
         $this->db->bind(':current_date', $current_date);
         $posted = $this->db->single();
-        
+
         // Get amount remitted today
         $this->db->query("
             SELECT COALESCE(SUM(amount_paid), 0) as amount_remitted, remit_id, date
@@ -299,7 +307,7 @@ class PaymentProcessor {
         $this->db->bind(':officer_id', $posting_officer_id);
         $this->db->bind(':current_date', $current_date);
         $remitted = $this->db->single();
-        
+
         return [
             'amount_posted' => $posted['amount_posted'],
             'amount_remitted' => $remitted['amount_remitted'],
@@ -308,17 +316,18 @@ class PaymentProcessor {
             'date' => isset($remitted['date']) ? $remitted['date'] : ''
         ];
     }
-    
+
     /**
      * Process car park payment
      */
-    public function processCarParkPayment($data) {
+    public function processCarParkPayment($data)
+    {
         $this->db->beginTransaction();
-        
+
         try {
             $txref = time() . mt_rand(0, 9);
             $now = date('Y-m-d H:i:s');
-            
+
             // Insert main transaction
             $this->db->query("
                 INSERT INTO account_general_transaction_new (
@@ -335,7 +344,7 @@ class PaymentProcessor {
                     :no_tickets, :remit_id, :income_line
                 )
             ");
-            
+
             $this->db->bind(':txref', $txref);
             $this->db->bind(':date_payment', $data['date_of_payment']);
             $this->db->bind(':ticket_category', $data['ticket_category']);
@@ -356,9 +365,9 @@ class PaymentProcessor {
             $this->db->bind(':no_tickets', $data['no_of_tickets']);
             $this->db->bind(':remit_id', $data['remit_id']);
             $this->db->bind(':income_line', $data['income_line']);
-            
+
             $this->db->execute();
-            
+
             // Insert debit entry
             $this->db->query("
                 INSERT INTO {$data['db_debit_table']} (
@@ -367,7 +376,7 @@ class PaymentProcessor {
                     :txref, :acct_id, :date, :receipt_no, :trans_desc, :amount, :balance, :approval_status
                 )
             ");
-            
+
             $this->db->bind(':txref', $txref);
             $this->db->bind(':acct_id', $data['debit_account']);
             $this->db->bind(':date', $data['date_of_payment']);
@@ -376,9 +385,9 @@ class PaymentProcessor {
             $this->db->bind(':amount', $data['amount_paid']);
             $this->db->bind(':balance', '');
             $this->db->bind(':approval_status', $data['approval_status']);
-            
+
             $this->db->execute();
-            
+
             // Insert credit entry
             $this->db->query("
                 INSERT INTO {$data['db_credit_table']} (
@@ -387,7 +396,7 @@ class PaymentProcessor {
                     :txref, :acct_id, :date, :receipt_no, :trans_desc, :amount, :balance, :approval_status
                 )
             ");
-            
+
             $this->db->bind(':txref', $txref);
             $this->db->bind(':acct_id', $data['credit_account']);
             $this->db->bind(':date', $data['date_of_payment']);
@@ -396,36 +405,37 @@ class PaymentProcessor {
             $this->db->bind(':amount', $data['amount_paid']);
             $this->db->bind(':balance', '');
             $this->db->bind(':approval_status', $data['approval_status']);
-            
+
             $this->db->execute();
-            
+
             $this->db->endTransaction();
             return ['success' => true, 'message' => 'Payment successfully posted for approval!'];
-            
         } catch (Exception $e) {
             $this->db->cancelTransaction();
             return ['success' => false, 'message' => 'Error occurred while posting: ' . $e->getMessage()];
         }
     }
-    
+
     /**
      * Get staff list for dropdown
      */
-    public function getStaffList($department = null) {
+    public function getStaffList($department = null)
+    {
         if ($department) {
             $this->db->query("SELECT user_id, full_name FROM staffs WHERE department = :department ORDER BY full_name ASC");
             $this->db->bind(':department', $department);
         } else {
             $this->db->query("SELECT user_id, full_name FROM staffs ORDER BY full_name ASC");
         }
-        
+
         return $this->db->resultSet();
     }
-    
+
     /**
      * Get other staff list
      */
-    public function getOtherStaffList() {
+    public function getOtherStaffList()
+    {
         $this->db->query("SELECT id, full_name, department FROM staffs_others ORDER BY full_name ASC");
         return $this->db->resultSet();
     }
@@ -433,7 +443,8 @@ class PaymentProcessor {
     /**
      * Validate posting data
      */
-    public function validatePosting($data) {
+    public function validatePosting($data)
+    {
         $errors = [];
 
         if (empty($data['date_of_payment'])) {
@@ -449,21 +460,107 @@ class PaymentProcessor {
             }
         }
 
-    if (empty($data['remitting_staff'])) {
+        if (empty($data['remitting_staff'])) {
             $errors[] = 'The remitting staff name is required';
+        }
+
+        if ($data['income_line_type'] == "carpark") {
+            if (empty($data['category'])) {
+                $errors[] = 'Please select category';
+            }
+
+            if (empty($data['ticket_category'])) {
+                $errors[] = 'Please select ticket category';
+            }
+
+            if (empty($data['no_of_tickets'])) {
+                $errors[] = 'Enter number of tickets';
+            }
+        }
+
+        if ($data['income_line_type'] == "loading") {
+            if (empty($data['category'])) {
+                $errors[] = 'Please select category';
+            }
+
+            if (empty($data['no_of_days'])) {
+                $errors[] = 'Please number of days';
+            }
+
+            if (empty($data['plate_no'])) {
+                $errors[] = 'Please enter vehicle number plate';
+            }
+        }
+
+        if ($data['income_line_type'] == "car_loading") {
+            if (empty($data['no_of_tickets'])) {
+                $errors[] = 'Enter number of tickets';
+            }
+        }
+
+        if ($data['income_line_type'] == "other_pos") {
+            if (empty($data['no_of_tickets'])) {
+                $errors[] = 'Enter number of tickets';
+            }
+        }
+
+        if ($data['income_line_type'] == "car_sticker") {
+            if (empty($data['shop_no'])) {
+                $errors[] = 'Please select shop';
+            }
+
+            if (empty($data['plate_no'])) {
+                $errors[] = 'Please enter vehicle number plate';
+            }
+        }
+
+        if ($data['income_line_type'] == "daily_trade") {
+
+            if (empty($data['ticket_category'])) {
+                $errors[] = 'Please select ticket category';
+            }
+
+            if (empty($data['no_of_tickets'])) {
+                $errors[] = 'Enter number of tickets';
+            }
+        }
+
+        if ($data['income_line_type'] == "daily_trade_arrears") {
+
+            if (empty($data['ticket_category'])) {
+                $errors[] = 'Please select ticket category';
+            }
+
+            if (empty($data['no_of_tickets'])) {
+                $errors[] = 'Enter number of tickets';
+            }
+        }
+
+        if ($data['income_line_type'] == "hawkers") {
+            if (empty($data['no_of_tickets'])) {
+                $errors[] = 'Enter number of tickets';
+            }
+        }
+
+
+        if ($data['income_line_type'] == "abattoir") {
+
+            if (empty($data['category'])) {
+                $errors[] = 'Please select category';
+            }
+            if (empty($data['quantity'])) {
+                $errors[] = 'Enter number quantity';
+            }
         }
 
         if (empty($data['amount_paid']) || !is_numeric($data['amount_paid']) || $data['amount_paid'] <= 0) {
             $errors[] = 'Amount must be a valid number and greater than 0.';
         }
-//var_dump($data['income_line']);
-//var_dump($data['income_line_type']);
 
-//exit();
-        if($data['income_line_type'] !== "car_sticker" AND $data['income_line_type'] !== "car_park" AND $data['income_line_type'] !== "loading"){
-        if (empty($data['transaction_desc'])) {
-            $errors[] = 'Transaction description is required';
-        }
+        if ($data['income_line_type'] !== "car_sticker" && $data['income_line_type'] !== "carpark" && $data['income_line_type'] !== "loading" && $data['income_line_type'] !== "overnight_parking") {
+            if (empty($data['transaction_desc'])) {
+                $errors[] = 'Transaction description is required';
+            }
         }
 
         if (empty($data['debit_account'])) {
@@ -474,7 +571,8 @@ class PaymentProcessor {
             $errors[] = 'Credit account (income line) is required';
         }
 
-
+// var_dump($data['debit_account']);
+// exit();
 
         if ($data['posting_officer_dept'] == 'Wealth Creation' && !empty($data['remit_id'])) {
             $balance = $this->getRemittanceBalance($data['posting_officer_id'], $data['current_date']);
@@ -497,7 +595,8 @@ class PaymentProcessor {
     /**
      * Process general payment posting
      */
-    public function processPayment($data) {
+    public function processPayment($data)
+    {
         try {
             $txref = time() . mt_rand(0, 9);
             $now = date('Y-m-d H:i:s');
@@ -616,14 +715,14 @@ class PaymentProcessor {
             }
 
             return ['success' => true, 'message' => 'Payment successfully posted for approval!'];
-
         } catch (Exception $e) {
             return ['success' => false, 'message' => 'Error posting payment: ' . $e->getMessage()];
         }
     }
-     /* Process income line payment (unified for all income types)
+    /* Process income line payment (unified for all income types)
      */
-    public function processIncomeLine($data) {
+    public function processIncomeLine($data)
+    {
         try {
             $txref = time() . mt_rand(0, 9);
             $now = date('Y-m-d H:i:s');
@@ -662,12 +761,20 @@ class PaymentProcessor {
             $debit_account_info = $this->getAccountInfo($data['debit_account']);
             $credit_account_info = $this->getAccountInfo($data['credit_account']);
 
+            if(!$credit_account_info){
+               $this->db->query("SELECT acct_id, acct_table_name, acct_desc FROM accounts WHERE acct_alias = :identifier");
+
+                $this->db->bind(':identifier', $data['credit_account']);
+                $credit_account_info = $this->db->single();
+                
+            }
+         
             if (!$debit_account_info || !$credit_account_info) {
                 return ['success' => false, 'message' => 'Invalid account selection'];
             }
 
             $full_transaction_desc = $credit_account_info['acct_desc'] . ' - ' . $transaction_desc;
-            $income_line = $data['income_line_type'] ? $data['income_line_type']: "";
+            $income_line = $data['income_line_type'] ? $data['income_line_type'] : "";
 
             $payment_category = 'Other Collection';
             $ticket_category = isset($data['ticket_category']) ? $data['ticket_category'] : '';
@@ -678,7 +785,7 @@ class PaymentProcessor {
             //$quantity        = isset($data['quantity']) ? $data['quantity'] : '';
             $no_of_nights    = isset($data['no_of_nights']) ? $data['no_of_nights'] : '';
             //$type            = isset($data['type']) ? $data['type'] : '';
-           // $board_name      = isset($data['board_name']) ? $data['board_name'] : '';
+            // $board_name      = isset($data['board_name']) ? $data['board_name'] : '';
 
             $this->db->query("
                 INSERT INTO account_general_transaction_new (
@@ -769,10 +876,8 @@ class PaymentProcessor {
             }
 
             return ['success' => true, 'message' => 'Payment successfully posted for approval!'];
-
         } catch (Exception $e) {
             return ['success' => false, 'message' => 'Error posting payment: ' . $e->getMessage()];
         }
     }
 }
-?>

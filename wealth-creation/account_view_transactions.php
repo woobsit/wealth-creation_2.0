@@ -181,7 +181,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 </a>
                 <a href="account_view_transactions.php?status=pending" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
+                    REVIEW Pending
+                </a>
+                <a href="account_view_transactions.php?status=review_approved" 
+                   class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'review_approved' ? 'bg-yellow-100 text-green-700' : 'text-gray-500 hover:text-gray-700'; ?>">
+                    REVIEW Approved
+                </a>
+                <a href="account_view_transactions.php?status=fc_pending" 
+                   class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'fc_pending' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     FC Pending
+                </a>
+                <a href="account_view_transactions.php?status=fc_approved" 
+                   class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'fc_approved' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
+                    FC Approved
+                </a>
+                <a href="account_view_transactions.php?status=audit_pending" 
+                   class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'audit_pending' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
+                    AUDIT Pending
                 </a>
                 <a href="account_view_transactions.php?status=approved" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'approved' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:text-gray-700'; ?>">

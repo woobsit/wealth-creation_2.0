@@ -53,62 +53,138 @@ class TransactionManager {
     /**
      * Get transactions with pagination and filtering
      */
+    // public function getTransactions($page = 1, $per_page = 20, $date_from = null, $date_to = null, $status_filter = null, $staff_filter = null) {
+    //     $offset = ($page - 1) * $per_page;
+        
+    //     $where_conditions = [];
+    //     $params = [];
+        
+    //     // Base condition for pending transactions
+    //     if ($status_filter === 'pending') {
+    //         $where_conditions[] = "leasing_post_status = 'Pending'";
+    //     } elseif ($status_filter === 'fc_pending') {
+    //         $where_conditions[] = "approval_status = 'Pending'";
+    //     } elseif ($status_filter === 'audit_pending') {
+    //         $where_conditions[] = "approval_status = 'Approved' AND verification_status = 'Pending'";
+    //     } elseif ($status_filter === 'declined') {
+    //         $where_conditions[] = "(approval_status = 'Declined' OR verification_status = 'Declined' OR leasing_post_status = 'Declined')";
+    //     } elseif ($status_filter === 'approved') {
+    //         $where_conditions[] = "approval_status = 'Approved' AND verification_status = 'Verified'";
+    //     }
+        
+    //     // Staff filtering
+    //     if ($staff_filter) {
+    //         $where_conditions[] = "posting_officer_id = :staff_filter";
+    //         $params[':staff_filter'] = $staff_filter;
+    //     }
+        
+    //     // Date filtering
+    //     if ($date_from && $date_to) {
+    //         $where_conditions[] = "date_of_payment BETWEEN :date_from AND :date_to";
+    //         $params[':date_from'] = $date_from;
+    //         $params[':date_to'] = $date_to;
+    //     }
+        
+    //     $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+        
+    //     $this->db->query("
+    //         SELECT t.*, 
+    //                da.acct_desc as debit_account_desc,
+    //                ca.acct_desc as credit_account_desc,
+    //                s.full_name as posting_officer_full_name
+    //         FROM account_general_transaction_new t
+    //         LEFT JOIN accounts da ON t.debit_account = da.acct_id
+    //         LEFT JOIN accounts ca ON t.credit_account = ca.acct_id
+    //         LEFT JOIN staffs s ON t.posting_officer_id = s.user_id
+    //         {$where_clause}
+    //         ORDER BY t.date_of_payment DESC, t.posting_time DESC
+    //         LIMIT :offset, :per_page
+    //     ");
+        
+    //     foreach ($params as $key => $value) {
+    //         $this->db->bind($key, $value);
+    //     }
+    //     $this->db->bind(':offset', $offset);
+    //     $this->db->bind(':per_page', $per_page);
+        
+    //     return $this->db->resultSet();
+    // }
     public function getTransactions($page = 1, $per_page = 20, $date_from = null, $date_to = null, $status_filter = null, $staff_filter = null) {
         $offset = ($page - 1) * $per_page;
         
-        $where_conditions = [];
-        $params = [];
+        $where_conditions = array();
+        $params = array();
         
         // Base condition for pending transactions
         if ($status_filter === 'pending') {
-            $where_conditions[] = "leasing_post_status = 'Pending'";
+            $where_conditions[] = "t.leasing_post_status = 'Pending'";
+        } elseif ($status_filter === 'review_approved') {
+            $where_conditions[] = "t.leasing_post_status = 'Approved' AND (t.approval_status = 'Pending' OR t.approval_status = 'Pending')";
         } elseif ($status_filter === 'fc_pending') {
-            $where_conditions[] = "approval_status = 'Pending'";
+            $where_conditions[] = "t.approval_status = 'Pending'";
+        } elseif ($status_filter === 'fc_approved') {
+            $where_conditions[] = "t.approval_status = 'Approved'";
         } elseif ($status_filter === 'audit_pending') {
-            $where_conditions[] = "approval_status = 'Approved' AND verification_status = 'Pending'";
+            $where_conditions[] = "t.verification_status = 'Pending' OR t.verification_status = ''";
         } elseif ($status_filter === 'declined') {
-            $where_conditions[] = "(approval_status = 'Declined' OR verification_status = 'Declined' OR leasing_post_status = 'Declined')";
+            $where_conditions[] = "(t.approval_status = 'Declined' OR t.verification_status = 'Declined' OR t.leasing_post_status = 'Declined')";
         } elseif ($status_filter === 'approved') {
-            $where_conditions[] = "approval_status = 'Approved' AND verification_status = 'Verified'";
+            $where_conditions[] = "t.leasing_post_status = 'Approved' AND t.approval_status = 'Approved' AND t.verification_status = 'Verified'";
         }
-        
-        // Staff filtering
-        if ($staff_filter) {
-            $where_conditions[] = "posting_officer_id = :staff_filter";
+
+        // --- STAFF FILTER ---
+        if (!empty($staff_filter)) {
+            $where_conditions[] = "t.posting_officer_id = :staff_filter";
             $params[':staff_filter'] = $staff_filter;
         }
-        
-        // Date filtering
-        if ($date_from && $date_to) {
-            $where_conditions[] = "date_of_payment BETWEEN :date_from AND :date_to";
+
+        // --- DATE FILTER ---
+        if (!empty($date_from) && !empty($date_to)) {
+            $where_conditions[] = "DATE(t.date_of_payment) BETWEEN :date_from AND :date_to";
             $params[':date_from'] = $date_from;
             $params[':date_to'] = $date_to;
+        } elseif (!empty($date_from)) {
+            $where_conditions[] = "DATE(t.date_of_payment) >= :date_from";
+            $params[':date_from'] = $date_from;
+        } elseif (!empty($date_to)) {
+            $where_conditions[] = "DATE(t.date_of_payment) <= :date_to";
+            $params[':date_to'] = $date_to;
         }
-        
-        $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
-        
-        $this->db->query("
-            SELECT t.*, 
-                   da.acct_desc as debit_account_desc,
-                   ca.acct_desc as credit_account_desc,
-                   s.full_name as posting_officer_full_name
+
+        $where_clause = "";
+        if (!empty($where_conditions)) {
+            $where_clause = "WHERE " . implode(" AND ", $where_conditions);
+        }
+
+        $sql = "
+            SELECT 
+                t.*, 
+                da.acct_desc AS debit_account_desc,
+                ca.acct_desc AS credit_account_desc,
+                s.full_name AS posting_officer_full_name
             FROM account_general_transaction_new t
             LEFT JOIN accounts da ON t.debit_account = da.acct_id
             LEFT JOIN accounts ca ON t.credit_account = ca.acct_id
             LEFT JOIN staffs s ON t.posting_officer_id = s.user_id
-            {$where_clause}
+            $where_clause
             ORDER BY t.date_of_payment DESC, t.posting_time DESC
             LIMIT :offset, :per_page
-        ");
-        
+        ";
+
+        $this->db->query($sql);
+
+        // --- BIND VALUES ---
         foreach ($params as $key => $value) {
             $this->db->bind($key, $value);
         }
-        $this->db->bind(':offset', $offset);
-        $this->db->bind(':per_page', $per_page);
-        
+
+        // Use explicit integer bind for LIMIT and OFFSET
+        $this->db->bind(':offset', (int)$offset, PDO::PARAM_INT);
+        $this->db->bind(':per_page', (int)$per_page, PDO::PARAM_INT);
+
         return $this->db->resultSet();
     }
+
     
     /**
      * Get total count for pagination
@@ -199,46 +275,184 @@ class TransactionManager {
     /**
      * Approve transaction
      */
-    public function approveTransaction($transaction_id, $approver_id, $approver_name, $department, $level) {
-        $this->db->beginTransaction();
+    // public function approveTransaction($transaction_id, $approver_id, $approver_name, $department, $level) {
+    //     $this->db->beginTransaction();
         
-        try {
-            $now = date('Y-m-d H:i:s');
+    //     try {
+    //         $now = date('Y-m-d H:i:s');
             
+    //         if ($department === 'Accounts' && $level === 'fc') {
+    //             // FC/Accounts approval
+    //             $this->db->query("
+    //                 UPDATE account_general_transaction_new 
+    //                 SET approval_status = 'Approved',
+    //                     verification_status = 'Pending',
+    //                     approving_acct_officer_id = :approver_id,
+    //                     approving_acct_officer_name = :approver_name,
+    //                     approval_time = :approval_time
+    //                 WHERE id = :transaction_id
+    //             ");
+                
+    //             $this->db->bind(':approver_id', $approver_id);
+    //             $this->db->bind(':approver_name', $approver_name);
+    //             $this->db->bind(':approval_time', $now);
+    //             $this->db->bind(':transaction_id', $transaction_id);
+                
+    //         } elseif ($department === 'Accounts' && $level != 'fc') {
+    //             // Accounts Review approval
+    //             $this->db->query("
+    //                 UPDATE account_general_transaction_new 
+    //                 SET leasing_post_status = 'Approved',
+    //                     approval_status = 'Pending',
+    //                     leasing_post_approving_officer_id = :approver_id,
+    //                     leasing_post_approving_officer_name = :approver_name,
+    //                     leasing_post_approval_time = :leasing_approval_time
+    //                 WHERE id = :transaction_id
+    //             ");
+                
+    //             $this->db->bind(':approver_id', $approver_id);
+    //             $this->db->bind(':approver_name', $approver_name);
+    //             $this->db->bind(':leasing_approval_time', $now);
+    //             $this->db->bind(':transaction_id', $transaction_id);
+                
+    //         } elseif ($department === 'Audit/Inspections') {
+    //             // Audit verification
+    //             $this->db->query("
+    //                 UPDATE account_general_transaction_new 
+    //                 SET verification_status = 'Verified',
+    //                     verifying_auditor_id = :approver_id,
+    //                     verifying_auditor_name = :approver_name,
+    //                     verification_time = :verification_time
+    //                 WHERE id = :transaction_id
+    //             ");
+                
+    //             $this->db->bind(':approver_id', $approver_id);
+    //             $this->db->bind(':approver_name', $approver_name);
+    //             $this->db->bind(':verification_time', $now);
+    //             $this->db->bind(':transaction_id', $transaction_id);
+    //         }
+            
+    //         $this->db->execute();
+    //         $this->db->endTransaction();
+            
+    //         return ['success' => true, 'message' => 'Transaction approved successfully'];
+            
+    //     } catch (Exception $e) {
+    //         $this->db->cancelTransaction();
+    //         return ['success' => false, 'message' => 'Error approving transaction: ' . $e->getMessage()];
+    //     }
+    // }
+    public function approveTransaction($transaction_id, $approver_id, $approver_name, $department, $level) {
+        try {
+            $this->db->beginTransaction();
+            $now = date('Y-m-d H:i:s');
+
+            //Accounts Final Approval
             if ($department === 'Accounts' && $level === 'fc') {
-                // FC/Accounts approval
+
+                // STEP 1: Approve in main transaction table
                 $this->db->query("
                     UPDATE account_general_transaction_new 
                     SET approval_status = 'Approved',
+                        verification_status = 'Pending',
                         approving_acct_officer_id = :approver_id,
                         approving_acct_officer_name = :approver_name,
                         approval_time = :approval_time
                     WHERE id = :transaction_id
                 ");
-                
                 $this->db->bind(':approver_id', $approver_id);
                 $this->db->bind(':approver_name', $approver_name);
                 $this->db->bind(':approval_time', $now);
                 $this->db->bind(':transaction_id', $transaction_id);
-                
-            } elseif ($department === 'Accounts' && $level != 'fc') {
-                // Accounts Review approval
+                $this->db->execute();
+
+                // STEP 2: Fetch debit and credit account codes
+                $this->db->query("
+                    SELECT debit_account, credit_account 
+                    FROM account_general_transaction_new 
+                    WHERE id = :transaction_id
+                    LIMIT 1
+                ");
+                $this->db->bind(':transaction_id', $transaction_id);
+                $txn = $this->db->single();
+
+                if (!$txn) {
+                    throw new Exception("Transaction not found");
+                }
+
+                $debit_account_id = (int)$txn['debit_account'];
+                $credit_account_id = (int)$txn['credit_account'];
+
+                // STEP 3: Fetch both accounts’ table names in one query
+                $this->db->query("
+                    SELECT acct_id, acct_table_name 
+                    FROM accounts 
+                    WHERE acct_id IN (:debit_id, :credit_id)
+                ");
+                $this->db->bind(':debit_id', $debit_account_id);
+                $this->db->bind(':credit_id', $credit_account_id);
+                $accounts = $this->db->resultSet();
+
+                $debit_table = null;
+                $credit_table = null;
+    
+                foreach ($accounts as $acct) {
+                    $acct_id = (int)$acct['acct_id'];
+                    if ($acct_id === (int)$debit_account_id) {
+                        $debit_table = $acct['acct_table_name'];
+                    } elseif ($acct_id === (int)$credit_account_id) {
+                        $credit_table = $acct['acct_table_name'];
+                    }
+                }
+
+                if (!$debit_table || !$credit_table) {
+                    $debugInfo = [
+                        'debit_account_id' => $debit_account_id,
+                        'credit_account_id' => $credit_account_id,
+                        'accounts' => $accounts,
+                        'debit_table' => $debit_table,
+                        'credit_table' => $credit_table
+                    ];
+                    throw new Exception("Debit or Credit account table not found  | Debug: " . json_encode($debugInfo));
+                }
+
+                // STEP 4: Build dynamic table update for debit and credit tables
+                //Using prepared statements to prevent injection — table names validated manually
+                $allowedTables = [$debit_table, $credit_table]; // optionally validate from whitelist
+
+                foreach ($allowedTables as $tableName) {
+                    // Verify table name is alphanumeric or underscore only
+                    if (!preg_match('/^[a-zA-Z0-9_]+$/', $tableName)) {
+                        throw new Exception("Invalid table name: " . $tableName);
+                    }
+
+                    $sql = "UPDATE `$tableName` SET approval_status = 'Approved' WHERE id = :txn_id";
+                    $this->db->query($sql);
+                    $this->db->bind(':txn_id', $transaction_id);
+                    $this->db->execute();
+                }
+            }
+
+            //Accounts Review Approval (non-FC)
+            elseif ($department === 'Accounts' && $level !== 'fc') {
                 $this->db->query("
                     UPDATE account_general_transaction_new 
                     SET leasing_post_status = 'Approved',
+                        approval_status = 'Pending',
                         leasing_post_approving_officer_id = :approver_id,
                         leasing_post_approving_officer_name = :approver_name,
-                        leasing_post_approval_time = :leasing_approval_time
+                        leasing_post_approval_time = :approval_time
                     WHERE id = :transaction_id
                 ");
-                
                 $this->db->bind(':approver_id', $approver_id);
                 $this->db->bind(':approver_name', $approver_name);
-                $this->db->bind(':leasing_approval_time', $now);
+                $this->db->bind(':approval_time', $now);
                 $this->db->bind(':transaction_id', $transaction_id);
-                
-            } elseif ($department === 'Audit/Inspections') {
-                // Audit verification
+                $this->db->execute();
+            }
+
+            // Audit Verification
+            elseif ($department === 'Audit/Inspections') {
                 $this->db->query("
                     UPDATE account_general_transaction_new 
                     SET verification_status = 'Verified',
@@ -247,23 +461,24 @@ class TransactionManager {
                         verification_time = :verification_time
                     WHERE id = :transaction_id
                 ");
-                
                 $this->db->bind(':approver_id', $approver_id);
                 $this->db->bind(':approver_name', $approver_name);
                 $this->db->bind(':verification_time', $now);
                 $this->db->bind(':transaction_id', $transaction_id);
+                $this->db->execute();
             }
-            
-            $this->db->execute();
+
+            // Commit everything
             $this->db->endTransaction();
-            
+
             return ['success' => true, 'message' => 'Transaction approved successfully'];
-            
+
         } catch (Exception $e) {
             $this->db->cancelTransaction();
             return ['success' => false, 'message' => 'Error approving transaction: ' . $e->getMessage()];
         }
     }
+
     
     /**
      * Decline transaction

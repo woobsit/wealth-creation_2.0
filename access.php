@@ -165,7 +165,7 @@ if ($first_name && $last_name) {
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-fade-in mb-20">
 
-            <a href="#"
+            <a href="<?php echo (APP_URL . '/woobs/index.php') ?>"
                 class="portal-card flex flex-col p-10 rounded-3xl woobs-gradient text-white hover:ring-8 ring-primary-200/50 transition duration-300 transform">
 
                 <div class="flex-grow flex items-center space-x-6">

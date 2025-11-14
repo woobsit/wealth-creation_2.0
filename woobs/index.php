@@ -1,11 +1,19 @@
 <?php
 require __DIR__.'/../app/config/config_woobs.php';
 require __DIR__.'/../app/helpers/session_helper.php';
+require __DIR__.'/../app/models/Customer.php';
+// require __DIR__.'/../app/models/PowerConsumption.php';
 
 // Check if user is already logged in
 requireLogin();
 $user_id = $_SESSION['user_id'];
-
+$customer = new Customer($databaseObj);
+// $powerConsumption = new PowerConsumption($databaseObj);
+// Get statistics
+$customerStats = $customer->getCustomerStats($databaseObj);
+$rentExpiryStats = $customer->getRentExpiryStats($databaseObj); 
+// // Get power consumption data for selected period
+// $powerData = $powerConsumption->getPowerConsumptionByPeriod(date('m'));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -126,6 +134,51 @@ $user_id = $_SESSION['user_id'];
             padding: 0.5rem 0.75rem;
             margin: 0 0.25rem;
         }
+
+        .sidebar-transition {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hover-scale {
+            transition: transform 0.2s ease;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .card-shadow:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -145,12 +198,120 @@ $user_id = $_SESSION['user_id'];
             </p>
         </div>
 
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Active Customers -->
+            <div class="bg-white rounded-lg shadow-lg p-6 hover-scale card-shadow">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-users text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Active Customers</p>
+                        <p class="text-2xl font-bold text-gray-900"><?php echo number_format($customerStats['active']); ?></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="customers.php?status=active" class="text-sm text-green-600 hover:text-green-500">
+                        View all active customers →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Inactive Customers -->
+            <div class="bg-white rounded-lg shadow-lg p-6 hover-scale card-shadow">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-user-times text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Inactive Customers</p>
+                        <p class="text-2xl font-bold text-gray-900"><?php echo number_format($customerStats['inactive']); ?></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="customers.php?status=inactive" class="text-sm text-red-600 hover:text-red-500">
+                        View inactive customers →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Vacant Shops -->
+            <div class="bg-white rounded-lg shadow-lg p-6 hover-scale card-shadow">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-home text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Vacant Shops</p>
+                        <p class="text-2xl font-bold text-gray-900"><?php echo number_format($customerStats['vacant']); ?></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="leasing/vacant_shops.php" class="text-sm text-yellow-600 hover:text-yellow-500">
+                        View vacant shops →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Number of expiring customer's rent  -->
+            <div class="bg-white rounded-lg shadow-lg p-6 hover-scale card-shadow">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-home text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Expiring (<?php echo date('F'); ?>) </p>
+                        
+                        <p class="text-2xl font-bold text-gray-900"> 
+                            <?php echo number_format($rentExpiryStats['expiring_count']); ?> 
+                            <span class="text-sm text-gray-500 font-normal">Shop(s)</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="leasing/vacant_shops.php" class="text-sm text-red-600 hover:text-yellow-500">
+                        View shop analysis →
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Quick Shortcuts -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">
+                <i class="fas fa-bolt text-yellow-600 mr-2"></i>Quick Shortcuts
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="mpr_analysis_rent.php" class="text-center p-4 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors duration-200">
+                    <i class="fas fa-home text-2xl text-blue-600 mb-2 block"></i>
+                    <span class="text-sm font-medium text-blue-800">MPR Dashboard</span>
+                </a>
+
+                <a href="leasing/power_consumption.php" class="text-center p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors duration-200">
+                    <i class="fas fa-bolt text-2xl text-green-600 mb-2 block"></i>
+                    <span class="text-sm font-medium text-green-800">Power Consumption</span>
+                </a>
+                
+                <a href="mod/account/account_dashboard.php" class="text-center p-4 bg-red-100 rounded-lg hover:bg-red-200 transition-colors duration-200">
+                    <i class="fas fa-money-bill text-2xl text-red-600 mb-2 block"></i>
+                    <span class="text-sm font-medium text-red-800">Account Remittance</span>
+                </a>
+
+                <a href="leasing/shop_analysis.php" class="text-center p-4 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors duration-200">
+                    <i class="fas fa-building text-2xl text-purple-600 mb-2 block"></i>
+                    <span class="text-sm font-medium text-purple-800">Shop Analysis</span>
+                </a>
+            </div>
+        </div>
+
     </main>
 
   <footer class="border-t mt-12 shadow-inner" style="background: linear-gradient(145deg, #0284c7, #0ea5e9); border-color: #0284c7;">
     <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <div class="text-center text-sm text-white">
-            &copy; <?php echo date('Y'); ?>WOOBS ERP. All rights reserved. Developed by Woobs Resources Ltd.
+            &copy; <?php echo date('Y'); ?> WOOBS ERP. All rights reserved. Developed by Woobs Resources Ltd.
         </div>
     </div>
 </footer>

@@ -5,7 +5,7 @@ require __DIR__ . '/general_config.php';
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'old_wealth_creation');
+define('DB_NAME', 'woobsres_woobserp');
 
 // Application configuration
 define('APP_NAME', 'WOOBS ERP');

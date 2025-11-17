@@ -198,84 +198,116 @@ $rentExpiryStats = $customer->getRentExpiryStats($databaseObj);
             </p>
         </div>
 
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Active Customers -->
-            <div class="bg-white rounded-lg shadow-lg p-6 hover-scale card-shadow">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100 text-green-600">
-                        <i class="fas fa-users text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Active Customers</p>
-                        <p class="text-2xl font-bold text-gray-900"><?php echo number_format($customerStats['active']); ?></p>
+        
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+            
+            <div class="stats-card bg-white overflow-hidden shadow-lg rounded-xl border-t-4 border-primary-600">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-primary-100 p-3 rounded-full">
+                            <i class="fas fa-users text-2xl text-primary-700"></i>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Active Customers
+                                </dt>
+                                <dd class="text-3xl font-bold text-gray-900 mt-1">
+                                    <p class="text-2xl font-bold text-gray-900"> <?php echo number_format($customerStats['active']); ?> 
+                                    <span class="text-sm text-gray-500 font-normal">Shop(s)</span>
+                                    </p>
+                                </dd>
+                            </dl>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <a href="customers.php?status=active" class="text-sm text-green-600 hover:text-green-500">
-                        View all active customers →
+                <div class="bg-primary-50 px-5 py-2 text-xs">
+                    <a href="customers.php" class="font-medium text-primary-700 hover:text-primary-800 transition-colors">
+                        View all active customers → <i class="fas fa-arrow-right ml-1 text-xs"></i>
                     </a>
                 </div>
             </div>
 
-            <!-- Inactive Customers -->
-            <div class="bg-white rounded-lg shadow-lg p-6 hover-scale card-shadow">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-red-100 text-red-600">
-                        <i class="fas fa-user-times text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Inactive Customers</p>
-                        <p class="text-2xl font-bold text-gray-900"><?php echo number_format($customerStats['inactive']); ?></p>
+            <div class="stats-card bg-white overflow-hidden shadow-lg rounded-xl border-t-4 border-success-600">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-success-100 p-3 rounded-full">
+                            <i class="fas fa-calendar-day text-2xl text-success-700"></i>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Inactive Customers
+                                </dt>
+                                <dd class="text-3xl font-bold text-gray-900 mt-1">
+                                    <p class="text-2xl font-bold text-gray-900">
+                                        <?php echo number_format($customerStats['inactive']); ?>
+                                        <span class="text-sm text-gray-500 font-normal">Shop(s)</span>
+                                    </p>
+                                    
+                                </dd>
+                            </dl>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <a href="customers.php?status=inactive" class="text-sm text-red-600 hover:text-red-500">
-                        View inactive customers →
+                <div class="bg-success-50 px-5 py-2 text-xs">
+                    <a href="#" class="font-medium text-success-700 hover:text-success-800 transition-colors">
+                        View inactive customers → <i class="fas fa-arrow-right ml-1 text-xs"></i>
                     </a>
                 </div>
             </div>
 
-            <!-- Vacant Shops -->
-            <div class="bg-white rounded-lg shadow-lg p-6 hover-scale card-shadow">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
-                        <i class="fas fa-home text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Vacant Shops</p>
-                        <p class="text-2xl font-bold text-gray-900"><?php echo number_format($customerStats['vacant']); ?></p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <a href="leasing/vacant_shops.php" class="text-sm text-yellow-600 hover:text-yellow-500">
-                        View vacant shops →
-                    </a>
-                </div>
-            </div>
-
-            <!-- Number of expiring customer's rent  -->
-            <div class="bg-white rounded-lg shadow-lg p-6 hover-scale card-shadow">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-red-100 text-red-600">
-                        <i class="fas fa-home text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Expiring (<?php echo date('F'); ?>) </p>
-                        
-                        <p class="text-2xl font-bold text-gray-900"> 
-                            <?php echo number_format($rentExpiryStats['expiring_count']); ?> 
-                            <span class="text-sm text-gray-500 font-normal">Shop(s)</span>
-                        </p>
+            <div class="stats-card bg-white overflow-hidden shadow-lg rounded-xl border-t-4 border-warning-600">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-warning-100 p-3 rounded-full">
+                            <i class="fas fa-home text-2xl text-warning-700"></i>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Vacant Shops
+                                </dt>
+                                <dd class="text-3xl font-bold text-gray-900 mt-1">
+                                    <?php echo number_format($customerStats['vacant']); ?>
+                                    <span class="text-sm text-gray-500 font-normal">Shop(s)</span>
+                                </dd>
+                            </dl>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <a href="leasing/vacant_shops.php" class="text-sm text-red-600 hover:text-yellow-500">
-                        View shop analysis →
+                <div class="bg-warning-50 px-5 py-2 text-xs">
+                    <a href="leasing/vacant_shops.php" class="font-medium text-warning-700 hover:text-warning-800 transition-colors">
+                        View vacant shops → <i class="fas fa-arrow-right ml-1 text-xs"></i>
                     </a>
                 </div>
             </div>
             
+            <div class="stats-card bg-white overflow-hidden shadow-lg rounded-xl border-t-4 border-danger-600">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-danger-100 p-3 rounded-full">
+                            <i class="fas fa-home text-2xl text-danger-700"></i>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Expiring (<?php echo date('F'); ?>)
+                                </dt>
+                                <dd class="text-3xl font-bold text-gray-900 mt-1">
+                                    <?php echo number_format($rentExpiryStats['expiring_count']); ?> 
+                                    <span class="text-sm text-gray-500 font-normal">Shop(s)</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-danger-50 px-5 py-2 text-xs">
+                    <a href="leasing/vacant_shops.php" class="font-medium text-danger-700 hover:text-danger-800 transition-colors">
+                     View shop analysis → <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Quick Shortcuts -->

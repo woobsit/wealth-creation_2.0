@@ -23,7 +23,7 @@
                       <div class="relative">
                           <button onclick="toggleDropdown('transactionDropdown')" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-white" style="background-color: #0ea5e9; border-color: #0284c7; --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
                               <i class="fas fa-exchange-alt text-white"></i>
-                              <span class="font-semibold text-sm">Transaction</span>
+                              <span class="font-semibold text-sm"> WRL Accounts </span>
                               <i class="fas fa-chevron-down text-xs"></i>
                           </button>
 
@@ -106,52 +106,78 @@
                         <div class="relative">
                             <button onclick="toggleDropdown('accounttransactionDropdown')" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-white" style="background-color: #0ea5e9; border-color: #0284c7; --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
                                 <i class="fas fa-exchange-alt text-white"></i>
-                                <span class="font-semibold text-sm">Transaction</span>
+                                <span class="font-semibold text-sm">WRL Trans.</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
                             <div id="accounttransactionDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-2 hidden z-50">
                                 <a href="account_view_transactions.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-list mr-2"></i>View Transactions
+                                    <i class="fas fa-list mr-2"></i> View WRL Transactions
                                 </a>
-                                <a href="mod/leasing/trans_analysis.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-chart-line mr-2"></i>Print Analysis
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-chart-line mr-2"></i> WRL/Rent Analysis
                                 </a>
-                                <a href="mod/account/post_trans.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-home mr-2"></i>Kclamp/Coldroom/Container Rent
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-home mr-2"></i>Receive Money
                                 </a>
-                                <a href="mod/account/post_trans_sc.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-tools mr-2"></i>Kclamp/Coldroom/Container Service Charge
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-tools mr-2"></i> Payments
                                 </a>
-                                <a href="mod/account/payments.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-credit-card mr-2"></i>Payments
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-credit-card mr-2"></i> Journal Entry
                                 </a>
-                                <a href="mod/account/journal_entry.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-book mr-2"></i>Journal Entry
-                                </a>
+                                
                             </div>
+                           
+                        </div>
+
+<div class="relative">
+                            <button onclick="toggleDropdown('accounttransactionDropdownarena')" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-white" style="background-color: #0ea5e9; border-color: #0284c7; --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                                <i class="fas fa-exchange-alt text-white"></i>
+                                <span class="font-semibold text-sm">ARENA Trans.</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            <div id="accounttransactionDropdownarena" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-2 hidden z-50">
+                                <a href="account_view_transactions.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-list mr-2"></i> View ARENA Transactions
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-chart-line mr-2"></i> ARENA/Service Charge Analysis
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-home mr-2"></i>Receive Money
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-tools mr-2"></i> Payments
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-credit-card mr-2"></i> Journal Entry
+                                </a>
+                                
+                            </div>
+                           
                         </div>
 
                         <div class="relative dropdown">
                             <button onclick="toggleDropdown('reportDropdown')" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-white" style="background-color: #0ea5e9; border-color: #0284c7; --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
                                 <i class="fas fa-file-invoice-dollar text-white"></i>
-                                <span class="font-semibold text-sm"> Finance </span>
+                                <span class="font-semibold text-sm">WRL Report </span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
                             <div id="reportDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-2 hidden z-50">
                                 <a href="mod/account/ledgers.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-book-open mr-2"></i>General Ledgers
+                                    <i class="fas fa-book-open mr-2"></i>WRL General Ledgers
                                 </a> 
                                 <?php 
                                 if ($_SESSION['department'] == "Accounts" && ($_SESSION['level'] == "fc" || $_SESSION['level'] == "senior accountant")) { ?>
                                 
                                     <a href="mod/account/trial_balance.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                        <i class="fas fa-balance-scale mr-2"></i>Trial Balance
+                                        <i class="fas fa-balance-scale mr-2"></i>WRL Trial Balance
                                     </a>
                                     <a href="mod/account/profit_loss.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                        <i class="fas fa-chart-line mr-2"></i>Income Statement
+                                        <i class="fas fa-chart-line mr-2"></i>WRL Income Statement
                                     </a>
                                     <a href="mod/account/balance_sheet.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                        <i class="fas fa-file-invoice-dollar mr-2"></i>Financial Position
+                                        <i class="fas fa-file-invoice-dollar mr-2"></i>WRL Financial Position
                                     </a>
                                 <?php } ?>
                                 
@@ -159,21 +185,52 @@
                             </div>
                         </div>
 
+                        <div class="relative dropdown">
+                            <button onclick="toggleDropdown('reportDropdownarena')" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-white" style="background-color: #0ea5e9; border-color: #0284c7; --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                                <i class="fas fa-file-invoice-dollar text-white"></i>
+                                <span class="font-semibold text-sm">ARENA Report </span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            <div id="reportDropdownarena" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-2 hidden z-50">
+                                <a href="mod/account/ledgers.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-book-open mr-2"></i>ARENA General Ledgers
+                                </a> 
+                                <?php 
+                                if ($_SESSION['department'] == "Accounts" && ($_SESSION['level'] == "fc" || $_SESSION['level'] == "senior accountant")) { ?>
+                                
+                                    <a href="mod/account/trial_balance.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <i class="fas fa-balance-scale mr-2"></i>ARENA Trial Balance
+                                    </a>
+                                    <a href="mod/account/profit_loss.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <i class="fas fa-chart-line mr-2"></i>ARENA Income Statement
+                                    </a>
+                                    <a href="mod/account/balance_sheet.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <i class="fas fa-file-invoice-dollar mr-2"></i>ARENA Financial Position
+                                    </a>
+                                <?php } ?>
+                                
+
+                            </div>
+                        </div>
                         <div class="relative">
                             <button onclick="toggleDropdown('accountDropdown')" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-white" style="background-color: #0ea5e9; border-color: #0284c7; --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
                                 <i class="fas fa-chart-pie text-white"></i>Chart
                                 <i class="fas fa-chevron-down ml-1 text-sm"></i>
                             </button>
                             <div id="accountDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-2 hidden z-50">
-                                <a href="mod/account/acct_chart.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <i class="fas fa-chart-pie mr-2"></i>Account Chart
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-chart-pie mr-2"></i>WRL Account Chart
+                                </a>
+                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-chart-pie mr-2"></i>ARENA Account Chart
                                 </a>
                             </div>
+                            
                         </div>
                         
-                        <?php if ($_SESSION['level'] != "dgm") { ?>
+                        <?php //if ($_SESSION['level'] != "dgm") { ?>
 
-                            <div class="relative">
+                            <!-- <div class="relative">
                                 <button onclick="toggleDropdown('customerDropdown')" class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-white" style="background-color: #0ea5e9; border-color: #0284c7; --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
                                     <i class="fas fa-users text-white"></i>Shop
                                     <i class="fas fa-chevron-down ml-1 text-sm"></i>
@@ -183,9 +240,9 @@
                                         <i class="fas fa-user-cog mr-2"></i>Customers' Information
                                     </a>
                                 </div>
-                            </div>
-                        <?php }
-                    } ?>
+                            </div>-->
+                        <?php // }
+                    } ?> 
 
 
                     <?php

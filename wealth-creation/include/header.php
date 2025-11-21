@@ -280,7 +280,7 @@
                              <i class="fas fa-chevron-down ml-1 text-sm"></i>
                          </button>
                          <div id="auditDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-2 hidden z-50">
-                             <a href="account_view_transactions.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                             <a href="audit_view_transanctions.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                  <i class="fas fa-list mr-2"></i>View Transactions
                              </a>
                              <a href="mod/leasing/trans_analysis.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">

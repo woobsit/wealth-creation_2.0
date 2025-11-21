@@ -11,7 +11,7 @@ $userId = $_SESSION['user_id'];
 $db = $databaseObj;
 $user = new User($databaseObj);
 $staff = $user->getUserStaffDetail($userId);
-if ($staff['department'] == 'Audit/Inspections'){
+if ($staff['department'] !== 'Audit/Inspections'){
     header('Location: unauthorized.php');
     exit;
 }
@@ -25,7 +25,7 @@ if (!$manager->checkUserPermissions($staff['user_id'], 'acct_view_record')) {
 }
 // Handle pagination
 $page = isset($_GET['page']) ? $_GET['page'] : 1;
-$per_page = 20;
+$per_page = 100;
 
 // Handle filtering
 $date_from = null;
@@ -49,7 +49,7 @@ if ($search_term) {
     // For search, we'll use a simplified count
     $total_count = count($transactions);
 } else {
-    $transactions = $manager->getTransactions($page, $per_page, $date_from, $date_to, $status_filter);
+    $transactions = $manager->getTransactionsAudit($page, $per_page, $date_from, $date_to, $status_filter);
     $total_count = $manager->getTransactionCount($date_from, $date_to, $status_filter);
 }
 
@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 <!-- Search -->
                 <form method="GET" class="flex gap-2">
-                    <input type="text" name="search" value="<?php echo htmlspecialchars($search_term); ?>" 
+                    <input type="text" name="search" id="auditSearch" value="<?php echo htmlspecialchars($search_term); ?>" 
                            placeholder="Search transactions..."
                            class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -180,35 +180,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             <!-- Status Filter Tabs -->
             <div class="mt-4 flex flex-wrap gap-2">
-                <a href="account_view_transactions.php" 
+                <a href="audit_view_transanctions.php" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo !$status_filter ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     All Transactions
                 </a>
-                <a href="account_view_transactions.php?status=pending" 
+                <a href="audit_view_transanctions.php?status=pending" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     REVIEW Pending
                 </a>
-                <a href="account_view_transactions.php?status=review_approved" 
+                <a href="audit_view_transanctions.php?status=review_approved" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'review_approved' ? 'bg-yellow-100 text-green-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     REVIEW Approved
                 </a>
-                <a href="account_view_transactions.php?status=fc_pending" 
+                <a href="audit_view_transanctions.php?status=fc_pending" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'fc_pending' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     FC Pending
                 </a>
-                <a href="account_view_transactions.php?status=fc_approved" 
+                <a href="audit_view_transanctions.php?status=fc_approved" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'fc_approved' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     FC Approved
                 </a>
-                <a href="account_view_transactions.php?status=audit_pending" 
+                <a href="audit_view_transanctions.php?status=audit_pending" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'audit_pending' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     AUDIT Pending
                 </a>
-                <a href="account_view_transactions.php?status=approved" 
+                <a href="audit_view_transanctions.php?status=approved" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'approved' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     Approved
                 </a>
-                <a href="account_view_transactions.php?status=declined" 
+                <a href="audit_view_transanctions.php?status=declined" 
                    class="px-4 py-2 rounded-md text-sm font-medium <?php echo $status_filter === 'declined' ? 'bg-red-100 text-red-700' : 'text-gray-500 hover:text-gray-700'; ?>">
                     Declined
                 </a>
@@ -269,7 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Authorization</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-gray-200" id="glTable">
                         <?php if (empty($transactions)): ?>
                         <tr>
                             <td colspan="10" class="px-6 py-4 text-center text-gray-500">
@@ -946,6 +946,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             });
         }, 5000);
     </script>
+    <script>
+document.getElementById("auditSearch").addEventListener("keyup", function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll("#glTable tr");
+
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(filter)
+            ? ""
+            : "none";
+    });
+});
+</script>
      
 </body>
 </html>

@@ -125,7 +125,7 @@ class TransactionManager {
         } elseif ($status_filter === 'fc_approved') {
             $where_conditions[] = "t.approval_status = 'Approved'";
         } elseif ($status_filter === 'audit_pending') {
-            $where_conditions[] = "t.verification_status = 'Pending' OR t.verification_status = ''";
+            $where_conditions[] = "(t.verification_status = 'Pending' OR t.verification_status = '')";
         } elseif ($status_filter === 'declined') {
             $where_conditions[] = "(t.approval_status = 'Declined' OR t.verification_status = 'Declined' OR t.leasing_post_status = 'Declined')";
         } elseif ($status_filter === 'approved') {
@@ -185,6 +185,83 @@ class TransactionManager {
         return $this->db->resultSet();
     }
 
+     public function getTransactionsAudit($page = 1, $per_page = 20, $date_from = null, $date_to = null, $status_filter = null, $staff_filter = null) {
+        $offset = ($page - 1) * $per_page;
+        
+        $where_conditions = array();
+        $params = array();
+        
+        // Base condition for pending transactions
+        if ($status_filter === 'pending') {
+            $where_conditions[] = "t.leasing_post_status = 'Pending'";
+        } elseif ($status_filter === 'review_approved') {
+            $where_conditions[] = "t.leasing_post_status = 'Approved' AND (t.approval_status = 'Pending' OR t.approval_status = 'Pending')";
+        } elseif ($status_filter === 'fc_pending') {
+            $where_conditions[] = "t.approval_status = 'Pending'";
+        } elseif ($status_filter === 'fc_approved') {
+            $where_conditions[] = "t.approval_status = 'Approved'";
+        } elseif ($status_filter === 'audit_pending') {
+            $where_conditions[] = "(t.verification_status = 'Pending' OR t.verification_status = '')";
+        } elseif ($status_filter === 'declined') {
+            $where_conditions[] = "(t.approval_status = 'Declined' OR t.verification_status = 'Declined' OR t.leasing_post_status = 'Declined')";
+        } elseif ($status_filter === 'approved') {
+            $where_conditions[] = "(t.leasing_post_status = 'Approved' AND t.approval_status = 'Approved' AND t.verification_status = 'Verified')";
+        }
+
+        // --- STAFF FILTER ---
+        if (!empty($staff_filter)) {
+            $where_conditions[] = "t.posting_officer_id = :staff_filter";
+            $params[':staff_filter'] = $staff_filter;
+        }
+
+        // --- DATE FILTER ---
+        if (!empty($date_from) && !empty($date_to)) {
+            $where_conditions[] = "DATE(t.date_of_payment) BETWEEN :date_from AND :date_to";
+            $params[':date_from'] = $date_from;
+            $params[':date_to'] = $date_to;
+        } elseif (!empty($date_from)) {
+            $where_conditions[] = "DATE(t.date_of_payment) >= :date_from";
+            $params[':date_from'] = $date_from;
+        } elseif (!empty($date_to)) {
+            $where_conditions[] = "DATE(t.date_of_payment) <= :date_to";
+            $params[':date_to'] = $date_to;
+        }
+
+        $where_clause = "";
+        if (!empty($where_conditions)) {
+            $where_clause = "WHERE " . implode(" AND ", $where_conditions);
+            
+        }
+
+        $sql = "
+            SELECT 
+                t.*, 
+                da.acct_desc AS debit_account_desc,
+                ca.acct_desc AS credit_account_desc,
+                s.full_name AS posting_officer_full_name
+            FROM account_general_transaction_new t
+            LEFT JOIN accounts da ON t.debit_account = da.acct_id
+            LEFT JOIN accounts ca ON t.credit_account = ca.acct_id
+            LEFT JOIN staffs s ON t.posting_officer_id = s.user_id
+            $where_clause
+            ORDER BY t.date_of_payment DESC, t.posting_time DESC
+            LIMIT :offset, :per_page
+        ";
+//var_dump($sql);
+          //  exit();
+        $this->db->query($sql);
+
+        // --- BIND VALUES ---
+        foreach ($params as $key => $value) {
+            $this->db->bind($key, $value);
+        }
+
+        // Use explicit integer bind for LIMIT and OFFSET
+        $this->db->bind(':offset', (int)$offset, PDO::PARAM_INT);
+        $this->db->bind(':per_page', (int)$per_page, PDO::PARAM_INT);
+
+        return $this->db->resultSet();
+    }
     
     /**
      * Get total count for pagination

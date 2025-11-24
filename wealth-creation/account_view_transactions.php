@@ -354,7 +354,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     <?php elseif ($transaction['leasing_post_status'] === 'Pending'): ?>
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
                                     <?php else: ?>
-                                        <span class="text-gray-400">-</span>
+                                        <span class="text-grey-800">-</span>
                                     <?php endif; ?>
                                 </td>
                                 
@@ -367,7 +367,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     <?php elseif ($transaction['approval_status'] === 'Pending'): ?>
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
                                     <?php else: ?>
-                                        <span class="text-gray-400">-</span>
+                                        <span class="text-grey-800">-</span>
                                     <?php endif; ?>
                                 </td>
                                 
@@ -382,7 +382,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     <?php elseif ($transaction['approval_status'] === 'Approved'): ?>
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
                                     <?php else: ?>
-                                        <span class="text-gray-400">-</span>
+                                        <span class="text-grey-800">-</span>
                                     <?php endif; ?>
                                 </td>
                                 

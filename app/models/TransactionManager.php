@@ -62,14 +62,18 @@ class TransactionManager {
     //     // Base condition for pending transactions
     //     if ($status_filter === 'pending') {
     //         $where_conditions[] = "leasing_post_status = 'Pending'";
+    //     } elseif ($status_filter === 'review_approved') {
+    //         $where_conditions[] = "leasing_post_status = 'Approved' AND (approval_status = 'Pending' OR approval_status = 'Pending')";
     //     } elseif ($status_filter === 'fc_pending') {
     //         $where_conditions[] = "approval_status = 'Pending'";
+    //     } elseif ($status_filter === 'fc_approved') {
+    //         $where_conditions[] = "approval_status = 'Approved'";
     //     } elseif ($status_filter === 'audit_pending') {
-    //         $where_conditions[] = "approval_status = 'Approved' AND verification_status = 'Pending'";
+    //         $where_conditions[] = "verification_status = 'Pending' OR verification_status = ''";
     //     } elseif ($status_filter === 'declined') {
     //         $where_conditions[] = "(approval_status = 'Declined' OR verification_status = 'Declined' OR leasing_post_status = 'Declined')";
     //     } elseif ($status_filter === 'approved') {
-    //         $where_conditions[] = "approval_status = 'Approved' AND verification_status = 'Verified'";
+    //         $where_conditions[] = "leasing_post_status = 'Approved' AND approval_status = 'Approved' AND verification_status = 'Verified'";
     //     }
         
     //     // Staff filtering
@@ -97,7 +101,7 @@ class TransactionManager {
     //         LEFT JOIN accounts ca ON t.credit_account = ca.acct_id
     //         LEFT JOIN staffs s ON t.posting_officer_id = s.user_id
     //         {$where_clause}
-    //         ORDER BY t.date_of_payment DESC, t.posting_time DESC
+    //         ORDER BY t.date_of_payment ASC, t.posting_time ASC
     //         LIMIT :offset, :per_page
     //     ");
         
@@ -114,7 +118,7 @@ class TransactionManager {
         
         $where_conditions = array();
         $params = array();
-        
+
         // Base condition for pending transactions
         if ($status_filter === 'pending') {
             $where_conditions[] = "t.leasing_post_status = 'Pending'";
@@ -167,7 +171,7 @@ class TransactionManager {
             LEFT JOIN accounts ca ON t.credit_account = ca.acct_id
             LEFT JOIN staffs s ON t.posting_officer_id = s.user_id
             $where_clause
-            ORDER BY t.date_of_payment DESC, t.posting_time DESC
+            ORDER BY t.date_of_payment ASC, t.posting_time ASC
             LIMIT :offset, :per_page
         ";
 
@@ -184,7 +188,6 @@ class TransactionManager {
 
         return $this->db->resultSet();
     }
-
     
     /**
      * Get total count for pagination
@@ -395,7 +398,13 @@ class TransactionManager {
 
                 $debit_table = null;
                 $credit_table = null;
-    
+                // foreach ($accounts as $acct) {
+                //     if ($acct['acct_id'] === $debit_account_id) {
+                //         $debit_table = $acct['acct_table_name'];
+                //     } elseif ($acct['acct_id'] === $credit_account_id) {
+                //         $credit_table = $acct['acct_table_name'];
+                //     }
+                // }
                 foreach ($accounts as $acct) {
                     $acct_id = (int)$acct['acct_id'];
                     if ($acct_id === (int)$debit_account_id) {
@@ -478,7 +487,6 @@ class TransactionManager {
             return ['success' => false, 'message' => 'Error approving transaction: ' . $e->getMessage()];
         }
     }
-
     
     /**
      * Decline transaction
@@ -558,237 +566,7 @@ class TransactionManager {
     /**
      * Bulk approve transactions
      */
-    // public function bulkApproveTransactions($transaction_ids, $approver_id, $approver_name, $department) {
-    //     $this->db->beginTransaction();
-        
-    //     try {
-    //         $now = date('Y-m-d H:i:s');
-    //         $success_count = 0;
-            
-    //         foreach ($transaction_ids as $transaction_id) {
-    //             if ($department === 'Accounts' || $department === 'FC') {
-    //                 $this->db->query("
-    //                     UPDATE account_general_transaction_new 
-    //                     SET approval_status = 'Approved',
-    //                         approving_acct_officer_id = :approver_id,
-    //                         approving_acct_officer_name = :approver_name,
-    //                         approval_time = :approval_time
-    //                     WHERE id = :transaction_id
-    //                     AND approval_status = 'Pending'
-    //                 ");
-    //             } elseif ($department === 'Audit/Inspections') {
-    //                 $this->db->query("
-    //                     UPDATE account_general_transaction_new 
-    //                     SET verification_status = 'Verified',
-    //                         verifying_auditor_id = :approver_id,
-    //                         verifying_auditor_name = :approver_name,
-    //                         verification_time = :verification_time
-    //                     WHERE id = :transaction_id
-    //                     AND verification_status = 'Pending'
-    //                 ");
-    //             }
-                
-    //             $this->db->bind(':approver_id', $approver_id);
-    //             $this->db->bind(':approver_name', $approver_name);
-    //             $this->db->bind(':approval_time', $now);
-    //             $this->db->bind(':verification_time', $now);
-    //             $this->db->bind(':transaction_id', $transaction_id);
-                
-    //             if ($this->db->execute()) {
-    //                 $success_count++;
-    //             }
-    //         }
-            
-    //         $this->db->endTransaction();
-            
-    //         return [
-    //             'success' => true, 
-    //             'message' => "{$success_count} transactions approved successfully",
-    //             'count' => $success_count
-    //         ];
-            
-    //     } catch (Exception $e) {
-    //         $this->db->cancelTransaction();
-    //         return ['success' => false, 'message' => 'Error in bulk approval: ' . $e->getMessage()];
-    //     }
-    // }
-    // public function bulkApproveTransactions($transaction_ids, $approver_id, $approver_name, $department) {
-    //     $this->db->beginTransaction();
-
-    //     try {
-    //         $now = date('Y-m-d H:i:s');
-    //         $success_count = 0;
-    //         $failed_count  = 0;
-
-    //         $successful_ids = [];
-    //         $failed_ids = [];
-    //         $log_messages = [];
-
-    //         foreach ($transaction_ids as $transaction_id) {
-    //             $log_messages[] = "Processing transaction ID: {$transaction_id} by department: {$department}";
-
-    //             if ($department === 'Accounts' || $department === 'FC') {
-    //                 $this->db->query("
-    //                     UPDATE account_general_transaction_new 
-    //                     SET approval_status = 'Approved',
-    //                         approving_acct_officer_id = :approver_id,
-    //                         approving_acct_officer_name = :approver_name,
-    //                         approval_time = :approval_time
-    //                     WHERE id = :transaction_id
-    //                     AND approval_status = 'Pending'
-    //                 ");
-
-    //                 $this->db->bind(':approver_id', $approver_id);
-    //                 $this->db->bind(':approver_name', $approver_name);
-    //                 $this->db->bind(':approval_time', $now);
-    //                 $this->db->bind(':transaction_id', $transaction_id);
-    //             } 
-    //             elseif ($department === 'Audit/Inspections') {
-    //                 $this->db->query("
-    //                     UPDATE account_general_transaction_new 
-    //                     SET verification_status = 'Verified',
-    //                         verifying_auditor_id = :approver_id,
-    //                         verifying_auditor_name = :approver_name,
-    //                         verification_time = :verification_time
-    //                     WHERE id = :transaction_id
-    //                     AND verification_status = 'Pending'
-    //                 ");
-
-    //                 $this->db->bind(':approver_id', $approver_id);
-    //                 $this->db->bind(':approver_name', $approver_name);
-    //                 $this->db->bind(':verification_time', $now);
-    //                 $this->db->bind(':transaction_id', $transaction_id);
-    //             } 
-    //             else {
-    //                 $log_messages[] = "Unknown department '{$department}' — skipped transaction {$transaction_id}";
-    //                 $failed_ids[] = $transaction_id;
-    //                 $failed_count++;
-    //                 continue;
-    //             }
-
-    //             if ($this->db->execute()) {
-    //                 $success_count++;
-    //                 $successful_ids[] = $transaction_id;
-    //                 $log_messages[] = "Transaction {$transaction_id} approved successfully.";
-    //             } else {
-    //                 $failed_count++;
-    //                 $failed_ids[] = $transaction_id;
-    //                 $log_messages[] = "Failed to approve transaction {$transaction_id}.";
-    //             }
-    //         }
-
-    //         $this->db->endTransaction();
-
-    //         foreach ($log_messages as $line) {
-    //             error_log($line);
-    //         }
-
-    //         // Build detailed JSON response
-    //         return [
-    //             'success'        => true,
-    //             'message'        => "{$success_count} transactions approved successfully, {$failed_count} failed.",
-    //             'count'          => $success_count,
-    //             'failed_count'   => $failed_count,
-    //             'successful_ids' => $successful_ids,
-    //             'failed_ids'     => $failed_ids,
-    //             'log'            => $log_messages
-    //         ];
-
-    //     } catch (Exception $e) {
-    //         $this->db->cancelTransaction();
-    //         error_log("🔥 Bulk approval error: " . $e->getMessage());
-
-    //         return [
-    //             'success' => false,
-    //             'message' => 'Error in bulk approval: ' . $e->getMessage(),
-    //             'successful_ids' => isset($successful_ids) ? $successful_ids : [],
-    //             'failed_ids' => isset($failed_ids) ? $failed_ids : []
-    //         ];
-    //     }
-    // }
-    // public function bulkApproveTransactions($transaction_ids, $approver_id, $approver_name, $department) {
-    //     $this->db->beginTransaction();
-
-    //     try {
-    //         $now = date('Y-m-d H:i:s');
-    //         $success_count = 0;
-    //         $failed_ids = [];
-    //         $log_messages = [];
-
-    //         foreach ($transaction_ids as $transaction_id) {
-    //             $log_messages[] = "Processing ID {$transaction_id} ({$department})";
-
-    //             if ($department === 'Accounts' || $department === 'FC') {
-    //                 $sql = "
-    //                     UPDATE account_general_transaction_new 
-    //                     SET approval_status = 'Approved',
-    //                         approving_acct_officer_id = :approver_id,
-    //                         approving_acct_officer_name = :approver_name,
-    //                         approval_time = :approval_time
-    //                     WHERE id = :transaction_id
-    //                     AND approval_status = 'Pending'
-    //                 ";
-    //             } elseif ($department === 'Audit/Inspections') {
-    //                 $sql = "
-    //                     UPDATE account_general_transaction_new 
-    //                     SET verification_status = 'Verified',
-    //                         verifying_auditor_id = :approver_id,
-    //                         verifying_auditor_name = :approver_name,
-    //                         verification_time = :verification_time
-    //                     WHERE id = :transaction_id
-    //                     AND verification_status = 'Pending'
-    //                 ";
-    //             } else {
-    //                 $failed_ids[] = $transaction_id;
-    //                 continue;
-    //             }
-
-    //             // Prepare & bind
-    //             $this->db->query($sql);
-    //             $this->db->bind(':approver_id', $approver_id);
-    //             $this->db->bind(':approver_name', $approver_name);
-    //             $this->db->bind(':transaction_id', (int)$transaction_id);
-
-    //             if ($department === 'Accounts' || $department === 'FC') {
-    //                 $this->db->bind(':approval_time', $now);
-    //             } else {
-    //                 $this->db->bind(':verification_time', $now);
-    //             }
-
-    //             // Execute
-    //             $exec_result = $this->db->execute();
-    //             $affected = $this->db->rowCount();
-
-    //             // Log internal check
-    //             $log_messages[] = "Transaction {$transaction_id}: exec_result=" . json_encode($exec_result) . ", affected={$affected}";
-
-    //             if ($affected > 0) {
-    //                 $success_count++;
-    //             } else {
-    //                 $failed_ids[] = $transaction_id;
-    //             }
-    //         }
-
-    //         $this->db->endTransaction();
-
-    //         foreach ($log_messages as $msg) {
-    //             error_log($msg);
-    //         }
-
-    //         return [
-    //             'success'       => true,
-    //             'message'       => "{$success_count} transaction(s) approved successfully",
-    //             'count'         => $success_count,
-    //             'failed_count'  => count($failed_ids),
-    //             'failed_ids'    => $failed_ids
-    //         ];
-
-    //     } catch (Exception $e) {
-    //         $this->db->cancelTransaction();
-    //         error_log("🔥 Bulk approval error: " . $e->getMessage());
-    //         return ['success' => false, 'message' => 'Error in bulk approval: ' . $e->getMessage()];
-    //     }
-    // }
+   
     // public function bulkApproveTransactions($transaction_ids, $approver_id, $approver_name, $department, $level) {
     //     $this->db->beginTransaction();
 
@@ -796,77 +574,63 @@ class TransactionManager {
     //         $now = date('Y-m-d H:i:s');
     //         $success_count = 0;
     //         $failed_ids = [];
-    //         $log_messages = [];
+
+    //         error_log("=== BULK APPROVAL STARTED by {$approver_name} ({$department}/{$level}) at {$now} ===");
+    //         error_log("Total transactions: " . count($transaction_ids));
 
     //         foreach ($transaction_ids as $transaction_id) {
-    //             $log_messages[] = "Processing ID {$transaction_id} ({$department})";
+    //             error_log("---- Processing transaction ID {$transaction_id} ----");
 
     //             if ($department === 'Accounts' && $level === 'fc') {
-    //                 $sql = "
-    //                     UPDATE account_general_transaction_new 
-    //                     SET approval_status = 'Approved',
-    //                         approving_acct_officer_id = :approver_id,
-    //                         approving_acct_officer_name = :approver_name,
-    //                         approval_time = :approval_time
-    //                     WHERE id = :transaction_id
-    //                 ";
+    //                 $sql = "UPDATE account_general_transaction_new 
+    //                         SET approval_status='Approved',
+    //                             verification_status='Pending'
+    //                             approving_acct_officer_id=:approver_id,
+    //                             approving_acct_officer_name=:approver_name,
+    //                             approval_time=:time
+    //                         WHERE id=:transaction_id";
     //             } elseif ($department === 'Accounts' && $level != 'fc') {
-    //                 $sql = "
-    //                     UPDATE account_general_transaction_new 
-    //                     SET leasing_post_status = 'Approved',
-    //                         leasing_post_approving_officer_id = :approver_id,
-    //                         leasing_post_approving_officer_name = :approver_name,
-    //                         leasing_post_approval_time = :approval_time
-    //                     WHERE id = :transaction_id
-    //                 ";
+    //                 $sql = "UPDATE account_general_transaction_new 
+    //                         SET leasing_post_status = 'Approved',
+    //                             approval_status = 'Pending',
+    //                             leasing_post_approving_officer_id = :approver_id,
+    //                             leasing_post_approving_officer_name = :approver_name,
+    //                             leasing_post_approval_time = :time
+    //                         WHERE id=:transaction_id";
     //             } elseif ($department === 'Audit/Inspections') {
-    //                 $sql = "
-    //                     UPDATE account_general_transaction_new 
-    //                     SET verification_status = 'Verified',
-    //                         verifying_auditor_id = :approver_id,
-    //                         verifying_auditor_name = :approver_name,
-    //                         verification_time = :verification_time
-    //                     WHERE id = :transaction_id
-    //                 ";
+    //                 $sql = "UPDATE account_general_transaction_new 
+    //                         SET verification_status='Verified',
+    //                             verifying_auditor_id=:approver_id,
+    //                             verifying_auditor_name=:approver_name,
+    //                             verification_time=:time
+    //                         WHERE id=:transaction_id";
     //             } else {
+    //                 error_log("Unknown department/level for ID {$transaction_id}");
     //                 $failed_ids[] = $transaction_id;
     //                 continue;
     //             }
 
-    //             // Prepare and bind parameters safely
     //             $this->db->query($sql);
     //             $this->db->bind(':approver_id', $approver_id);
     //             $this->db->bind(':approver_name', $approver_name);
-    //             $this->db->bind(':transaction_id', $transaction_id, PDO::PARAM_STR);
+    //             $this->db->bind(':transaction_id', $transaction_id);
+    //             $this->db->bind(':time', $now);
 
-    //             if ($department === 'Accounts' && $level === 'fc') {
-    //                 $this->db->bind(':approval_time', $now);
-    //             }
-    //             if ($department === 'Accounts' && $level != 'fc') {
-    //                 $this->db->bind(':approval_time', $now);
-    //             } else {
-    //                 $this->db->bind(':verification_time', $now);
-    //             }
-
-    //             // Execute
     //             $exec_result = $this->db->execute();
     //             $affected = $this->db->rowCount();
 
-    //             // Log the outcome
-    //             $log_messages[] = "Transaction {$transaction_id}: exec_result=" . json_encode($exec_result) . ", affected={$affected}";
+    //             error_log("Execution result for ID {$transaction_id}: result=" . json_encode($exec_result) . ", affected={$affected}");
 
     //             if ($affected > 0) {
     //                 $success_count++;
     //             } else {
     //                 $failed_ids[] = $transaction_id;
+    //                 error_log("⚠️ No rows affected for ID {$transaction_id}");
     //             }
     //         }
 
     //         $this->db->endTransaction();
-
-    //         foreach ($log_messages as $msg) {
-    //             error_log($msg);
-    //         }
+    //         error_log("=== TRANSACTION COMMITTED: {$success_count} success, " . count($failed_ids) . " failed ===");
 
     //         return [
     //             'success'       => true,
@@ -878,7 +642,9 @@ class TransactionManager {
 
     //     } catch (Exception $e) {
     //         $this->db->cancelTransaction();
-    //         error_log("Bulk approval error: " . $e->getMessage());
+    //         error_log("❌ Bulk approval failed: " . $e->getMessage());
+    //         error_log($e->getTraceAsString());
+
     //         return [
     //             'success' => false,
     //             'message' => 'Error in bulk approval: ' . $e->getMessage()
@@ -886,7 +652,7 @@ class TransactionManager {
     //     }
     // }
     public function bulkApproveTransactions($transaction_ids, $approver_id, $approver_name, $department, $level) {
-        $this->db->beginTransaction();
+    $this->db->beginTransaction();
 
         try {
             $now = date('Y-m-d H:i:s');
@@ -899,54 +665,167 @@ class TransactionManager {
             foreach ($transaction_ids as $transaction_id) {
                 error_log("---- Processing transaction ID {$transaction_id} ----");
 
+                /**
+                 * ===========================================================
+                 * CASE 1: ACCOUNTS FINAL APPROVAL (FC)
+                 * ===========================================================
+                 */
                 if ($department === 'Accounts' && $level === 'fc') {
-                    $sql = "UPDATE account_general_transaction_new 
-                            SET approval_status='Approved',
-                                approving_acct_officer_id=:approver_id,
-                                approving_acct_officer_name=:approver_name,
-                                approval_time=:time
-                            WHERE id=:transaction_id";
-                } elseif ($department === 'Accounts' && $level != 'fc') {
-                    $sql = "UPDATE account_general_transaction_new 
-                            SET leasing_post_status='Approved',
-                                leasing_post_approving_officer_id=:approver_id,
-                                leasing_post_approving_officer_name=:approver_name,
-                                leasing_post_approval_time=:time
-                            WHERE id=:transaction_id";
-                } elseif ($department === 'Audit/Inspections') {
-                    $sql = "UPDATE account_general_transaction_new 
-                            SET verification_status='Verified',
-                                verifying_auditor_id=:approver_id,
-                                verifying_auditor_name=:approver_name,
-                                verification_time=:time
-                            WHERE id=:transaction_id";
-                } else {
-                    error_log("Unknown department/level for ID {$transaction_id}");
-                    $failed_ids[] = $transaction_id;
-                    continue;
+
+                    /**
+                     * STEP 1 — Update main transaction table
+                     */
+                    $this->db->query("
+                        UPDATE account_general_transaction_new 
+                        SET approval_status='Approved',
+                            verification_status='Pending',
+                            approving_acct_officer_id=:approver_id,
+                            approving_acct_officer_name=:approver_name,
+                            approval_time=:time
+                        WHERE id=:transaction_id
+                    ");
+                    $this->db->bind(':approver_id', $approver_id);
+                    $this->db->bind(':approver_name', $approver_name);
+                    $this->db->bind(':time', $now);
+                    $this->db->bind(':transaction_id', $transaction_id);
+                    $this->db->execute();
+
+                    /**
+                     * STEP 2 — Fetch debit and credit account id
+                     */
+                    $this->db->query("
+                        SELECT debit_account, credit_account 
+                        FROM account_general_transaction_new 
+                        WHERE id = :transaction_id
+                        LIMIT 1
+                    ");
+                    $this->db->bind(':transaction_id', $transaction_id);
+                    $txn = $this->db->single();
+
+                    if (!$txn) {
+                        $failed_ids[] = $transaction_id;
+                        error_log("Transaction not found for ID {$transaction_id}");
+                        continue;
+                    }
+
+                    $debit_account_id = (int)$txn['debit_account'];
+                    $credit_account_id = (int)$txn['credit_account'];
+
+                    /**
+                     * STEP 3 — Fetch BOTH ACCOUNT TABLES
+                     */
+                    $this->db->query("
+                        SELECT acct_id, acct_table_name 
+                        FROM accounts 
+                        WHERE acct_id IN (:debit_id, :credit_id)
+                    ");
+                    $this->db->bind(':debit_id', $debit_account_id);
+                    $this->db->bind(':credit_id', $credit_account_id);
+                    $accounts = $this->db->resultSet();
+
+                    $debit_table = null;
+                    $credit_table = null;
+
+                    foreach ($accounts as $acct) {
+                        $acct_id = (int)$acct['acct_id'];
+                        if ($acct_id === $debit_account_id) {
+                            $debit_table = $acct['acct_table_name'];
+                        } elseif ($acct_id === $credit_account_id) {
+                            $credit_table = $acct['acct_table_name'];
+                        }
+                    }
+
+                    if (!$debit_table || !$credit_table) {
+                        error_log("❌ Missing debit or credit table for ID {$transaction_id}");
+                        $failed_ids[] = $transaction_id;
+                        continue;
+                    }
+
+                    /**
+                     * STEP 4 — Update both ledger tables
+                     */
+                    $tables_to_update = [$debit_table, $credit_table];
+
+                    foreach ($tables_to_update as $tbl) {
+
+                        if (!preg_match('/^[a-zA-Z0-9_]+$/', $tbl)) {
+                            error_log("❌ INVALID TABLE NAME: {$tbl}");
+                            $failed_ids[] = $transaction_id;
+                            continue;
+                        }
+
+                        $sql = "UPDATE `$tbl` SET approval_status='Approved' WHERE id=:txn_id";
+                        $this->db->query($sql);
+                        $this->db->bind(':txn_id', $transaction_id);
+                        $this->db->execute();
+                    }
+
+                    $success_count++;
                 }
 
-                $this->db->query($sql);
-                $this->db->bind(':approver_id', $approver_id);
-                $this->db->bind(':approver_name', $approver_name);
-                $this->db->bind(':transaction_id', $transaction_id);
-                $this->db->bind(':time', $now);
+                /**
+                 * ===========================================================
+                 * CASE 2: ACCOUNTS REVIEW APPROVAL (NON-FC)
+                 * ===========================================================
+                 */
+                elseif ($department === 'Accounts' && $level !== 'fc') {
 
-                $exec_result = $this->db->execute();
-                $affected = $this->db->rowCount();
+                    $this->db->query("
+                        UPDATE account_general_transaction_new 
+                        SET leasing_post_status = 'Approved',
+                            approval_status = 'Pending',
+                            leasing_post_approving_officer_id = :approver_id,
+                            leasing_post_approving_officer_name = :approver_name,
+                            leasing_post_approval_time = :time
+                        WHERE id = :transaction_id
+                    ");
+                    $this->db->bind(':approver_id', $approver_id);
+                    $this->db->bind(':approver_name', $approver_name);
+                    $this->db->bind(':time', $now);
+                    $this->db->bind(':transaction_id', $transaction_id);
+                    $this->db->execute();
 
-                error_log("Execution result for ID {$transaction_id}: result=" . json_encode($exec_result) . ", affected={$affected}");
-
-                if ($affected > 0) {
                     $success_count++;
-                } else {
+                }
+
+                /**
+                 * ===========================================================
+                 * CASE 3: AUDIT VERIFICATION
+                 * ===========================================================
+                 */
+                elseif ($department === 'Audit/Inspections') {
+
+                    $this->db->query("
+                        UPDATE account_general_transaction_new 
+                        SET verification_status='Verified',
+                            verifying_auditor_id=:approver_id,
+                            verifying_auditor_name=:approver_name,
+                            verification_time=:time
+                        WHERE id=:transaction_id
+                    ");
+                    $this->db->bind(':approver_id', $approver_id);
+                    $this->db->bind(':approver_name', $approver_name);
+                    $this->db->bind(':time', $now);
+                    $this->db->bind(':transaction_id', $transaction_id);
+                    $this->db->execute();
+
+                    $success_count++;
+                }
+
+                /**
+                 * ===========================================================
+                 * UNKNOWN DEPARTMENT
+                 * ===========================================================
+                 */
+                else {
+                    error_log("❌ Unknown department/level on ID {$transaction_id}");
                     $failed_ids[] = $transaction_id;
-                    error_log("⚠️ No rows affected for ID {$transaction_id}");
                 }
             }
 
+            // FINAL COMMIT
             $this->db->endTransaction();
-            error_log("=== TRANSACTION COMMITTED: {$success_count} success, " . count($failed_ids) . " failed ===");
+            error_log("=== BULK COMMIT: {$success_count} success, " . count($failed_ids) . " failed ===");
 
             return [
                 'success'       => true,
@@ -957,9 +836,9 @@ class TransactionManager {
             ];
 
         } catch (Exception $e) {
+
             $this->db->cancelTransaction();
             error_log("❌ Bulk approval failed: " . $e->getMessage());
-            error_log($e->getTraceAsString());
 
             return [
                 'success' => false,
@@ -967,6 +846,7 @@ class TransactionManager {
             ];
         }
     }
+
 
 
 

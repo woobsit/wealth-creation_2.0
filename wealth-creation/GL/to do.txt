@@ -1,0 +1,17 @@
+I need you to help me recode this general ledger, ledger, and trial balance project like a professional PHP Developer 
+and accounting expert. Presently, the following are lacking list, we will be solving them one in a day:
+1. No proper journal entry tracking
+2. Missing opening balances
+3. No account hierarchy or classification
+4. Insufficient audit trail
+5. Mixed terminology and inconsistent naming
+6. No fiscal period management
+7. Missing account types proper classification
+The table connected to this code is stated in it's sql, just make it a perfect accounting world, 
+acceptable international ledger. Please use half of today's token for this project, we will do just number 1 and 2 on the list today and stop. 
+save all work as being done. Do you understand? I state it again, Use half of 
+today's token for this project.
+Transform this accounting system into an internationally acceptable ledger system following 
+GAAP and IFRS principles.
+
+

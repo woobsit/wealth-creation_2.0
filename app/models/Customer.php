@@ -14,16 +14,17 @@ class Customer {
             $query .= " LIMIT :limit OFFSET :offset";
         }
         
-        $this->db->query($query)
-                ->bind(':status', $status);
+        $this->db->query($query);
+        $this->db->bind(':status', $status); 
                 
         if ($limit) {
-            $this->db->bind(':limit', $limit, PDO::PARAM_INT)
-                    ->bind(':offset', $offset, PDO::PARAM_INT);
+            $this->db->bind(':limit', $limit, PDO::PARAM_INT);
+            $this->db->bind(':offset', $offset, PDO::PARAM_INT);
         }
         
         return $this->db->resultSet();
     }
+    
     
     public function getCustomerById($id) {
         $this->db->query("SELECT * FROM customers WHERE id = :id");

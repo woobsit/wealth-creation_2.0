@@ -1,0 +1,32 @@
+node_modules/
+.env
+
+# Database files
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# PHP
+vendor/
+composer.lock
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

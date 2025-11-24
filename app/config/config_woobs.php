@@ -9,7 +9,7 @@ define('DB_NAME', 'woobsres_woobserp');
 
 // Application configuration
 define('APP_NAME', 'WOOBS ERP');
-define('APP_URL', 'http://localhost/woobs_2.0');
+define('APP_URL', 'http://localhost:8080/wealth-creation_2.0');
 define('APP_VERSION', '2.0.0');
 
 $databaseObj = new Database(DB_HOST, DB_USER, DB_PASS, DB_NAME);

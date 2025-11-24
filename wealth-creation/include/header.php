@@ -142,7 +142,10 @@
                                  <i class="fas fa-book-open mr-2"></i>General Ledgers
                              </a> 
                              <?php 
-                             if ($_SESSION['department'] == "Accounts" && ($_SESSION['level'] == "fc" || $_SESSION['level'] == "senior accountant")) { ?>
+
+
+
+                             if (($_SESSION['level'] == "fc" || $_SESSION['level'] == "senior accountant")) { ?>
                              
                                  <a href="mod/account/trial_balance.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                      <i class="fas fa-balance-scale mr-2"></i>Trial Balance
